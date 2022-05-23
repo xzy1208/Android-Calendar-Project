@@ -68,27 +68,29 @@
 
 **schedule**：日程表
 
-| 列名         | 含义                |
-| ------------ | ------------------- |
-| title        | 标题                |
-| *place       | *地点               |
-| *isAllDay    | *是否全天           |
-| startTime    | 开始时间            |
-| endTime      | 结束时间            |
-| *isRepeat    | *是否重复           |
-| remindTime   | 提醒时间/多久前提醒 |
-| *isImportant | *是否重要提醒       |
-| *supplement  | *补充说明           |
+| 列名         | 字段类型 | 含义                |
+| ------------ | -------- | ------------------- |
+| title        | text     | 标题                |
+| *place       | text     | *地点               |
+| *isAllDay    | boolean  | *是否全天           |
+| startTime    | DATETIME | 开始时间            |
+| endTime      | DATETIME | 结束时间            |
+| *repeatTime1 | int      | *重复时间 数字      |
+| *repeatTime2 | int      | *重复频率 文字      |
+| remindTime   | DATETIME | 提醒时间/多久前提醒 |
+| *isImportant | boolean  | *是否重要提醒       |
+| *supplement  | text     | *补充说明           |
 
 **daysMatter**：重要日表（暂定倒数）
 
-| 列名        | 含义                 |
-| ----------- | -------------------- |
-| title       | 标题                 |
-| date        | 日期                 |
-| *isRepeat   | *是否重复            |
-| *remindTime | *提醒时间/多久前提醒 |
-| *type       | 正数/倒数            |
-| *supplement | *补充说明            |
+| 列名         | 类型     | 含义                 |
+| ------------ | -------- | -------------------- |
+| title        | text     | 标题                 |
+| date         | DATETIME | 日期                 |
+| *repeatTime1 | int      | *重复时间 数字       |
+| *repeatTime2 | int      | *重复时间 文字       |
+| *remindTime  | DATETIME | *提醒时间/多久前提醒 |
+| *type        | int      | 正数/倒数            |
+| *supplement  | text     | *补充说明            |
 
 **task**：任务清单（暂定）
