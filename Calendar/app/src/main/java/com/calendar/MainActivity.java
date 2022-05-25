@@ -4,12 +4,15 @@ import android.app.TabActivity;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TabHost;
 import android.widget.TextView;
 
 public class MainActivity extends TabActivity {
+
+    private FloatingActionButton floatMenu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,7 +25,14 @@ public class MainActivity extends TabActivity {
     }
 
     private void initView(){
-
+        floatMenu = (FloatingActionButton) findViewById(R.id.floatMenu);
+        floatMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this,AddActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     private void tabPaging(){
