@@ -1,9 +1,8 @@
-package com.example.chuny.calendar;
+package com.calendar;
 
 import android.app.TabActivity;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;

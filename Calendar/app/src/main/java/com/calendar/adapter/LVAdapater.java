@@ -1,4 +1,4 @@
-package com.example.chuny.calendar;
+package com.calendar.adapter;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -8,9 +8,12 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import com.calendar.bean.BigDay;
+import com.calendar.R;
+
 import java.util.List;
 
-class LVAdapater extends BaseAdapter {
+public class LVAdapater extends BaseAdapter {
     private Context mContext;
     private List<BigDay> mList;
     private LayoutInflater mInflater;

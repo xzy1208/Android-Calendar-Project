@@ -1,12 +1,14 @@
-package com.example.chuny.calendar;
+package com.calendar;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.calendar.adapter.LVAdapater;
+import com.calendar.bean.BigDay;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;

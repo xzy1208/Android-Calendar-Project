@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.chuny.calendar">
+    package="com.calendar">
 
     <application
         android:allowBackup="true"
@@ -17,7 +17,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".BigDayActivity" />
-        <activity android:name=".ScheduleActivity"></activity>
+        <activity android:name=".ScheduleActivity" />
+
     </application>
 
 </manifest>

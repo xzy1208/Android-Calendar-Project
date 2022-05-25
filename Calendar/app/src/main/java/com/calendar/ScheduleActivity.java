@@ -1,4 +1,4 @@
-package com.example.chuny.calendar;
+package com.calendar;
 
 import android.app.Activity;
 import android.os.Bundle;
