@@ -6,7 +6,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import com.calendar.bean.BigDay;
 import com.calendar.bean.Schedule;
@@ -22,10 +21,10 @@ public class DBAdapter {
 
 
 
-    private static DBAdapter DBAdapter =null;
+    private static com.calendar.db.DBAdapter DBAdapter =null;
     private SQLiteDatabase db;
     private final Context context;
-    private DBAdapter.DBOpenHelper dbOpenHelper;
+    private com.calendar.db.DBAdapter.DBOpenHelper dbOpenHelper;
 
     private  class DBOpenHelper extends SQLiteOpenHelper {
         public DBOpenHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version){
@@ -48,18 +47,18 @@ public class DBAdapter {
         }
         @Override
         public void onUpgrade(SQLiteDatabase _db, int _oldVersion, int _newVersion) {
-            _db.execSQL("DROP TABLE IF EXISTS " + ScheduleTable.CREATE_TABLE_SCHEDULE+BigDayTable.CREATE_TABLE_BIGDAY);
+            _db.execSQL("DROP TABLE IF EXISTS " + ScheduleTable.CREATE_TABLE_SCHEDULE+ BigDayTable.CREATE_TABLE_BIGDAY);
 
             onCreate(_db);
         }
     }
-    
+
 
     public DBAdapter(Context _context) {
         context = _context;
     }
     //单例模式
-    public static synchronized DBAdapter setDBAdapter(Context context){
+    public static synchronized com.calendar.db.DBAdapter setDBAdapter(Context context){
         if(DBAdapter==null){
             DBAdapter=new DBAdapter(context);
         }

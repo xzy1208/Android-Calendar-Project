@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Calendar</string>
+    <string name="search">搜索日程</string>
 </resources>

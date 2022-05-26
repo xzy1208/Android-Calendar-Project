@@ -8,37 +8,39 @@
 
 #### ①前端交互
 
-| 功能                         | 结果或进度 |
-| ---------------------------- | ---------- |
-| 日历显示模式切换：年、月、日 |            |
-| 年月日不同模式下日程显示     |            |
-| 日程搜索                     |            |
-| 日程总体显示                 |            |
-| 单个日程详细显示             |            |
-| 单个日程编辑界面             |            |
-| 倒数日总体显示               |            |
-| *任务清单总体显示            |            |
-| *跳转到某一日期              |            |
+| 功能                         | 结果或进度     |
+| ---------------------------- | -------------- |
+| 日历显示模式切换：年、月、日 | ing            |
+| 年月日不同模式下日程显示     |                |
+| 日程搜索                     | 部分完成，暂停 |
+| 日程总体显示                 |                |
+| 同一时间段多个日程           |                |
+| 单个日程详细显示             | ing            |
+| 单个日程编辑界面             | ing            |
+| 倒数日总体显示               | done           |
+| *任务清单总体显示            |                |
+| *跳转到某一日期              |                |
 
 
 
 #### ②后台功能
 
-| 功能                 | 结果或进度 |
-| -------------------- | ---------- |
-| 数据库建立           | 基本实现   |
-| 添加日程             |            |
-| 删除日程             |            |
-| 编辑日程             |            |
-| 日程提醒             |            |
-| 添加重要日           |            |
-| 删除重要日           |            |
-| 编辑重要日           |            |
-| 重要日提醒           |            |
-| *添加任务            |            |
-| *删除任务            |            |
-| *编辑任务            |            |
-| *GPS定位（用于地点） |            |
+| 功能                 | 结果或进度     |
+| -------------------- | -------------- |
+| 数据库建立           | 基本实现       |
+| 添加日程             | 前端实现       |
+| 删除日程             | ing            |
+| 编辑日程             | ing            |
+| 日程提醒             | 部分完成，暂停 |
+| 日程搜索             |                |
+| 添加重要日           | 前端实现       |
+| 删除重要日           | ing            |
+| 编辑重要日           | ing            |
+| 重要日提醒           | 部分完成，暂停 |
+| *添加任务            |                |
+| *删除任务            |                |
+| *编辑任务            |                |
+| *GPS定位（用于地点） |                |
 
 
 
@@ -50,35 +52,35 @@
 
 ##### 月
 
-![month](.\UI\month.jpg)
+<img src=".\UI\month.jpg" alt="month" style="zoom:50%;" />
 
 ##### 周
 
-![week](.\UI\week.jpg)
+<img src=".\UI\week.jpg" alt="week" style="zoom:50%;" />
 
-![weekMuchSchedule](.\UI\weekMuchSchedule.jpg)
+<img src=".\UI\weekMuchSchedule.jpg" alt="weekMuchSchedule" style="zoom:50%;" />
 
-![weekMoreSchedule](.\UI\weekMoreSchedule.jpg)
+<img src=".\UI\weekMoreSchedule.jpg" alt="weekMoreSchedule" style="zoom:50%;" />
 
-![weekScheduledetail](.\UI\weekScheduledetail.jpg)
+<img src=".\UI\weekScheduledetail.jpg" alt="weekScheduledetail" style="zoom:50%;" />
 
 ##### 日
 
-![day](.\UI\day.jpg)
+<img src=".\UI\day.jpg" alt="day" style="zoom:50%;" />
 
 日的详细日程课参考周
 
 #### 日程
 
-![addSchedule](.\UI\addSchedule.jpg)
+<img src=".\UI\addSchedule.jpg" alt="addSchedule" style="zoom:50%;" />
 
-![scheduleDetail](.\UI\scheduleDetail.jpg)
+<img src=".\UI\scheduleDetail.jpg" alt="scheduleDetail" style="zoom:50%;" />
 
 #### 重要日
 
-![addMatterDay](.\UI\addMatterDay.jpg)
+<img src=".\UI\addMatterDay.jpg" alt="addMatterDay" style="zoom:50%;" />
 
-![matterDayDetail](.\UI\matterDayDetail.jpg)
+<img src=".\UI\matterDayDetail.jpg" alt="matterDayDetail" style="zoom:50%;" />
 
 ### 3、数据库结构
 

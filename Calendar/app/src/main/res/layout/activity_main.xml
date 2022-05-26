@@ -1,47 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TabHost xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
-    android:id="@android:id/tabhost">
-
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
     <LinearLayout
+        android:id="@+id/search_title"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/colorPrimary"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        >
+        <ImageButton
+            android:id="@+id/search_back"
+            android:layout_height="30dp"
+            android:layout_width="30dp"
+            android:src="@mipmap/write_direction_left"
+            >
+        </ImageButton>
+        <SearchView
+            android:id="@+id/search_view"
+            android:layout_height="35dp"
+            android:layout_width="match_parent"
+            android:queryHint="@string/search"
+            android:layout_marginLeft="10dp"
+            android:background="@drawable/radius">
+
+        </SearchView>
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/title_bar"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent">
+        <include layout="@layout/top_title"/>
+    </LinearLayout>
+    <TabHost
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        tools:context=".MainActivity"
+        android:id="@android:id/tabhost"
+        android:layout_marginTop="50dp">
 
-        <TabWidget
-            android:id="@android:id/tabs"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="15dp"
-            android:paddingBottom="15dp"
-            android:paddingLeft="50dp"
-            android:paddingRight="50dp"/>
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-        <FrameLayout
-            android:id="@android:id/tabcontent"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <android.support.design.widget.FloatingActionButton
-                android:id="@+id/floatMenu"
-                android:layout_width="wrap_content"
+            <TabWidget
+                android:id="@android:id/tabs"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom|right"
-                android:layout_margin="16dp"
-                android:src="@mipmap/float_add"
-                app:backgroundTint="#ffffff"
-                app:elevation="5dp"
-                app:pressedTranslationZ="12dp"
-                app:fabSize="normal"
-                app:borderWidth="0dp"
-                app:rippleColor="#cccccc" />
+                android:paddingBottom="15dp"
+                android:paddingLeft="50dp"
+                android:paddingRight="50dp"
+                android:paddingTop="15dp" />
 
-        </FrameLayout>
+            <FrameLayout
+                android:id="@android:id/tabcontent"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                >
+                <LinearLayout
+                    android:id="@+id/main_month_view"
+                    android:layout_height="match_parent"
+                    android:layout_width="match_parent">
+                    <include layout="@layout/month_view"/>
+                </LinearLayout>
+                <LinearLayout
+                    android:id="@+id/main_week_view"
+                    android:layout_height="match_parent"
+                    android:layout_width="match_parent">
+                    <include layout="@layout/week_view"/>
+                </LinearLayout>
+            </FrameLayout>
 
-    </LinearLayout>
+        </LinearLayout>
+    </TabHost>
 
-</TabHost>
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/floatMenu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_margin="16dp"
+        android:src="@mipmap/float_add"
+        app:backgroundTint="#ffffff"
+        app:elevation="5dp"
+        app:pressedTranslationZ="12dp"
+        app:fabSize="normal"
+        app:borderWidth="0dp"
+        app:rippleColor="#cccccc" />
+
+
+</RelativeLayout>

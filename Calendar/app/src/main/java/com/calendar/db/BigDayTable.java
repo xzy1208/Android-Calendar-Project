@@ -3,7 +3,6 @@ package com.calendar.db;
 import android.content.ContentValues;
 import android.database.Cursor;
 
-
 import com.calendar.bean.BigDay;
 
 import java.sql.Timestamp;

@@ -7,12 +7,19 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TabHost;
 import android.widget.TextView;
 
 public class MainActivity extends TabActivity {
 
     private FloatingActionButton floatMenu;
+    private ImageButton searchBtn;
+    private LinearLayout titleBar;
+    private LinearLayout searchTitle;
+    private ImageButton searchBackBtn;
+    boolean isSearch=false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +40,34 @@ public class MainActivity extends TabActivity {
                 startActivity(intent);
             }
         });
+        searchBtn=findViewById(R.id.search_btn);
+        searchBtn.getBackground().setAlpha(0);
+        titleBar=findViewById(R.id.title_bar);
+        searchTitle=findViewById(R.id.search_title);
+        searchTitle.setVisibility(View.GONE);
+        searchBackBtn=findViewById(R.id.search_back);
+        searchBackBtn.getBackground().setAlpha(0);
+        searchBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(!isSearch){
+                    searchTitle.setVisibility(View.VISIBLE);
+                    titleBar.setVisibility(View.GONE);
+                    isSearch=true;
+                }
+                //startActivity(new Intent(MainActivity.this,SearchActivity.class));
+            }
+        });
+        searchBackBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(isSearch){
+                    searchTitle.setVisibility(View.GONE);
+                    titleBar.setVisibility(View.VISIBLE);
+                    isSearch=false;
+                }
+            }
+        });
     }
 
     private void tabPaging(){
@@ -40,16 +75,14 @@ public class MainActivity extends TabActivity {
         TabHost.TabSpec spec;
         // 进入界面时刷新UI：setContent(intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
 
-        // tab1 月
+         // tab1 月
         View tab1 = LayoutInflater.from(this).inflate(R.layout.tab1,null);
-        Intent intent1 = new Intent().setClass(this, ScheduleActivity.class);// 记得修改 还有布局的content
-        spec = tabHost.newTabSpec("1").setIndicator(tab1).setContent(intent1.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+        spec = tabHost.newTabSpec("1").setIndicator(tab1).setContent(R.id.main_month_view);//若传递layout必须传递id
         tabHost.addTab(spec);
 
         // tab2 周
         View tab2 = LayoutInflater.from(this).inflate(R.layout.tab2,null);
-        Intent intent2 = new Intent().setClass(this, ScheduleActivity.class);// 记得修改 还有布局的content
-        spec = tabHost.newTabSpec("2").setIndicator(tab2).setContent(intent2.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+        spec = tabHost.newTabSpec("2").setIndicator(tab2).setContent(R.id.main_week_view);
         tabHost.addTab(spec);
 
         // tab3 日
