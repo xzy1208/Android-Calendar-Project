@@ -170,3 +170,201 @@ Timestamp ts = Timestamp.valueOf(dateStr); //2017-05-06 15:54:21.0
 ```
 
 [Java java.sql.Timestamp时间戳案例详解_java_脚本之家 (jb51.net)](https://www.jb51.net/article/220840.htm)
+
+### 3.tabhost的使用
+
+#### ①MainActivity
+
+将需要添加选项卡的MainActivity继承TabActivity
+
+注册TabHost，注册选项tab1、tab2、tab3……设置tab1的布局、点击后对应的Activity、tabId用于监听切换
+
+```java
+public class MainActivity extends TabActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        
+        tabPaging();
+    }
+
+    private void tabPaging(){
+        TabHost tabHost = getTabHost();
+        TabHost.TabSpec spec;
+        // 进入界面时刷新UI：setContent(intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+
+        View tab1 = LayoutInflater.from(this).inflate(R.layout.tab1,null);// tab1.xml是第选项卡第一个选项的布局
+        Intent intent1 = new Intent().setClass(this, ScheduleActivity.class);// 和tab1.xml布局的context对应，绑定了该Activity作为点击该选项跳转的界面
+        spec = tabHost.newTabSpec("1").setIndicator(tab1).setContent(intent1.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));// “1”是tabId
+        tabHost.addTab(spec);
+
+        // 设置监听器，监听tab切换
+        tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener(){
+            @Override
+            public void onTabChanged(String tabId){
+
+                // 切换选项卡的效果
+                int tabID = Integer.valueOf(tabId)-1;
+                for (int i = 0; i < getTabWidget().getChildCount(); i++)
+                {
+                    TextView tab_title = (TextView) getTabWidget().getChildAt(i).findViewById(R.id.tab_title);
+                    TextView tab_underline = (TextView) getTabWidget().getChildAt(i).findViewById(R.id.tab_underline);
+                    if (i == tabID)
+                    {
+                        tab_title.setTextColor(Color.parseColor("#6699ff"));
+                        tab_underline.setVisibility(View.VISIBLE);
+                    }
+                    else
+                    {
+                        tab_title.setTextColor(Color.parseColor("#000000"));
+                        tab_underline.setVisibility(View.INVISIBLE);
+                    }
+                }
+            }
+        });
+    }
+}
+```
+
+#### ②main.xml
+
+设置MainActivity对应的main.xml的布局：
+
+设置最外部组件TabHost的tools:context=".MainActivity"和android:id="@android:id/tabhost">，注意tabhost的id不可更改！
+
+设置TabWidget对应选项卡条，id不可更改；设置FrameLayout对应选项卡条下的内容，id不可更改。
+
+```java
+<?xml version="1.0" encoding="utf-8"?>
+<TabHost xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    android:id="@android:id/tabhost">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TabWidget
+            android:id="@android:id/tabs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:paddingLeft="50dp"
+            android:paddingRight="50dp"/>
+
+        <FrameLayout
+            android:id="@android:id/tabcontent"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        </FrameLayout>
+
+    </LinearLayout>
+
+</TabHost>
+```
+
+#### ③tab.xml
+
+设置第一个选项tab1.xml的布局：
+
+tools:context=".ScheduleActivity" 绑定的是点击选项要切换的activity
+
+```java
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    tools:context=".ScheduleActivity"
+    android:gravity="center">
+
+    <TextView
+        android:id="@+id/tab_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="月"
+        android:textColor="#6699ff"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/tab_underline"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_marginTop="4dp"
+        android:background="#6699ff" />
+
+</LinearLayout>
+```
+
+要切换的Activity和对应的布局，照常写。
+
+### 4.悬浮按钮的使用
+
+#### ①添加依赖
+
+在build.gradle里加入依赖：compile 'com.android.support:design:26.0.0-alpha1'，可在library dependency库里搜索对应版本。
+
+#### ②FloatingActionButton
+
+在main.xml里添加android.support.design.widget.FloatingActionButton控件，并在最外层布局里设置xmlns:app="http://schemas.android.com/apk/res-auto"
+
+```java
+<?xml version="1.0" encoding="utf-8"?>
+<TabHost xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    android:id="@android:id/tabhost">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TabWidget
+            android:id="@android:id/tabs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:paddingLeft="50dp"
+            android:paddingRight="50dp"/>
+
+        <FrameLayout
+            android:id="@android:id/tabcontent"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/floatMenu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|right"
+                android:layout_margin="16dp"
+                android:src="@mipmap/float_add"
+                app:backgroundTint="#ffffff"
+                app:elevation="5dp"
+                app:pressedTranslationZ="12dp"
+                app:fabSize="normal"
+                app:borderWidth="0dp"
+                app:rippleColor="#cccccc" />
+
+        </FrameLayout>
+
+    </LinearLayout>
+
+</TabHost>
+```
+
+在MainActivity里设置FloatingActionButton控件对应的点击事件，方法和普通Button一样。
