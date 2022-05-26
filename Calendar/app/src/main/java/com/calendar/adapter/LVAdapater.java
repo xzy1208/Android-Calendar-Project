@@ -45,9 +45,9 @@ public class LVAdapater extends BaseAdapter {
         if(convertView == null){
             convertView = mInflater.inflate(R.layout.bigdaylistview_item, null);
             holder = new ViewHolder();
-            holder.item_title = (TextView)convertView.findViewById(R.id.item_title);
-            holder.item_num = (TextView)convertView.findViewById(R.id.item_num);
-            holder.item_day = (TextView)convertView.findViewById(R.id.item_day);
+            holder.item_title = (TextView)convertView.findViewById(R.id.bigDay_item_title);
+            holder.item_num = (TextView)convertView.findViewById(R.id.bigDay_item_num);
+            holder.item_day = (TextView)convertView.findViewById(R.id.bigDay_item_day);
             convertView.setTag(holder);
         }else{
             holder = (ViewHolder) convertView.getTag();

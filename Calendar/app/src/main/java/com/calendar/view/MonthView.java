@@ -12,7 +12,7 @@ import java.util.Date;
  * Created by Gkuma on 2022/5/25.
  */
 
-public class MonthView extends CalendarView{
+public class MonthView extends CalendarView {
     private Context context;
     private TextView titleSelect;
     private TextView tv_pre;

@@ -1,0 +1,24 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" >
+    <item
+        android:id="@+id/ring_null"
+        android:orderInCategory="1"
+        android:title="无"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/null_minute"
+        android:orderInCategory="2"
+        android:title="提前10分钟提醒"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/ring_hour"
+        android:orderInCategory="3"
+        android:title="提前1小时提醒"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/ring_day"
+        android:orderInCategory="4"
+        android:title="提前1天提醒"
+        app:showAsAction="never"/>
+ </menu>

@@ -24,7 +24,7 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
+                    android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center"
                     android:layout_margin="10dp">
@@ -65,7 +65,7 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
+                    android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center"
                     android:layout_margin="10dp">
@@ -106,7 +106,7 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
+                    android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center"
                     android:layout_margin="10dp">
@@ -153,10 +153,11 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
+                    android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center"
-                    android:layout_margin="10dp">
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp">
 
                     <TextView
                         android:layout_width="25dp"
@@ -207,10 +208,11 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
+                    android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center"
-                    android:layout_margin="10dp">
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp">
 
                     <TextView
                         android:layout_width="25dp"
@@ -254,7 +256,7 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
+                    android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center"
                     android:layout_margin="10dp">
@@ -272,19 +274,131 @@
                         android:textSize="17sp"
                         android:textColor="#000000"/>
 
-                    <Button
+                    <Switch
+                        android:id="@+id/schedule_repeat"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:background="@android:color/transparent"
-                        android:text="选择重复类型"
-                        android:textSize="15sp"
-                        android:gravity="right|center_vertical"/>
+                        android:checked="false"/>
 
-                    <TextView
-                        android:layout_width="25dp"
-                        android:layout_height="25dp"
-                        android:background="@mipmap/right"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/schedule_repeat_LL"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:orientation="horizontal"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp">
+
+                        <View
+                            android:layout_width="35dp"
+                            android:layout_height="match_parent" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="#4fa3a3a3" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp">
+
+                        <TextView
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
+                            android:layout_marginRight="10dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="重复时间"
+                            android:textSize="17sp"
+                            android:textColor="#000000"/>
+
+                        <Button
+                            android:id="@+id/schedule_repeatInterval"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:background="@android:color/transparent"
+                            android:text="1"
+                            android:textSize="15sp"
+                            android:gravity="right|center_vertical"/>
+
+                        <TextView
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
+                            android:background="@mipmap/right"/>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:orientation="horizontal"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp">
+
+                        <View
+                            android:layout_width="35dp"
+                            android:layout_height="match_parent" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="#4fa3a3a3" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp">
+
+                        <TextView
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
+                            android:layout_marginRight="10dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="重复频率"
+                            android:textSize="17sp"
+                            android:textColor="#000000"/>
+
+                        <Button
+                            android:id="@+id/schedule_repeatCycle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:background="@android:color/transparent"
+                            android:text="年"
+                            android:textSize="15sp"
+                            android:gravity="right|center_vertical"/>
+
+                        <TextView
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
+                            android:background="@mipmap/right"/>
+
+                    </LinearLayout>
 
                 </LinearLayout>
 
@@ -308,10 +422,11 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
+                    android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center"
-                    android:layout_margin="10dp">
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp">
 
                     <TextView
                         android:layout_width="25dp"
@@ -332,7 +447,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:background="@android:color/transparent"
-                        android:text="选择提醒时间"
+                        android:text="无"
                         android:textSize="15sp"
                         android:gravity="right|center_vertical"/>
 
@@ -356,7 +471,7 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
+                    android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center"
                     android:layout_margin="10dp">
@@ -368,7 +483,7 @@
                         android:background="@mipmap/supplement"/>
 
                     <EditText
-                        android:id="@+id/bigDay_supplement"
+                        android:id="@+id/schedule_supplement"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="说明"

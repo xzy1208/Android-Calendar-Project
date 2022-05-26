@@ -12,7 +12,7 @@ public class Schedule {
     public  int id =-1;
     public  String title;
     public  String place;//可能为其他类型，根据GPS定位
-    public int isAllDay;//0：不是全体1：是全天
+    public int isAllDay;//0：不是全天 1：是全天
     public Timestamp startTime;
     public  Timestamp endTime;
     public  int repeatInterval;
@@ -20,4 +20,15 @@ public class Schedule {
     public  Timestamp remindTime;
     public  int isImportant;
     public  String supplement;
+
+    public Schedule(){}
+
+    public Schedule(int id, String title, int isAllDay, Timestamp startTime, Timestamp endTime){
+        this.id = id;
+        this.title = title;
+        this.isAllDay = isAllDay;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+
 }

@@ -78,7 +78,7 @@ public class DBAdapter {
             db = null;
         }
     }
-    
+
     /*
         Schedule表方法,待补充
     *
@@ -138,5 +138,5 @@ public class DBAdapter {
         Cursor results = db.query(BigDayTable.TABLE, BigDayTable.getAllColumnIndex(), null, null, null, null, null);
         return BigDayTable.ConvertToBigDay(results);
     }
-    
+
 }

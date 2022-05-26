@@ -1,8 +1,11 @@
 package com.calendar;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -21,6 +24,8 @@ public class BigDayActivity extends Activity {
 
     private ListView bigDayListView;
 
+    private List<BigDay> bigDays;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,6 +34,9 @@ public class BigDayActivity extends Activity {
         initView();
 
         displayBigDay();
+
+        bigDayListView.setOnItemClickListener(new MyOnItemClickListener());
+        //registerForContextMenu(bigDayListView);//进行注册
     }
 
     // 初始化控件
@@ -52,7 +60,7 @@ public class BigDayActivity extends Activity {
 
     // 动态显示界面日期
     private void displayBigDay(){
-        List<BigDay> bigDays = new ArrayList<BigDay>();
+        bigDays = new ArrayList<BigDay>();
 
         // 测试数据 date设置年份要-1900 月份要-1
         Timestamp date = new Timestamp(new Date(2022-1900,6-1,8).getTime());
@@ -88,7 +96,7 @@ public class BigDayActivity extends Activity {
             calendar.setTime(bigDay.date);
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             String dateStr = sdf.format(calendar.getTime());
-            String[] weekDays = {"星期一","星期二","星期三","星期四","星期五","星期六","星期日"};
+            String[] weekDays = {"星期日","星期一","星期二","星期三","星期四","星期五","星期六"};
 
             bigDayFirstDate.setText("目标日："+dateStr+" "+ weekDays[calendar.get(Calendar.DAY_OF_WEEK)-1]);
             bigDayFirstNum.setText(bigDay.num+"");
@@ -96,6 +104,37 @@ public class BigDayActivity extends Activity {
             bigDayFirstLL.setVisibility(View.VISIBLE);
         }else{
             bigDayFirstLL.setVisibility(View.GONE);
+        }
+    }
+
+    // listView点击事件
+    class MyOnItemClickListener implements AdapterView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView parent, View view, int position, long id) {
+            BigDay bigDay = bigDays.get(position);
+
+            Intent intent = new Intent();
+            intent.setClass(BigDayActivity.this, LookBigDayActivity.class);
+            intent.putExtra("id",bigDay.id);
+            //
+            intent.putExtra("title",bigDay.title);
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(bigDay.date);
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            String dateStr = sdf.format(calendar.getTime());
+            String[] weekDays = {"星期日","星期一","星期二","星期三","星期四","星期五","星期六"};
+            Log.e("week",calendar.get(Calendar.DAY_OF_WEEK)+"");
+            intent.putExtra("date","目标日："+dateStr+" "+ weekDays[calendar.get(Calendar.DAY_OF_WEEK)-1]);
+
+            intent.putExtra("repeatInterval",bigDay.repeatInterval);
+            intent.putExtra("repeatCycle",bigDay.repeatCycle);
+            intent.putExtra("remindTime",bigDay.remindTime);
+            intent.putExtra("type",bigDay.type);
+            intent.putExtra("supplement",bigDay.supplement);
+            intent.putExtra("num",bigDay.num);
+            //
+            startActivity(intent);
         }
     }
 }

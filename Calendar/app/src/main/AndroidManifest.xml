@@ -20,8 +20,9 @@
         <activity android:name=".ScheduleActivity" />
         <activity android:name=".AddBigDayActivity" />
         <activity android:name=".AddActivity" />
-        <activity android:name=".AddScheduleActivity"/>
-
+        <activity android:name=".AddScheduleActivity" />
+        <activity android:name=".LookScheduleActivity" />
+        <activity android:name=".LookBigDayActivity"></activity>
     </application>
 
 </manifest>

@@ -14,7 +14,8 @@ import android.widget.TextView;
 
 public class MainActivity extends TabActivity {
 
-    private FloatingActionButton floatMenu;
+    private FloatingActionButton floatMenu_add;
+    private FloatingActionButton floatMenu_today;
     private ImageButton searchBtn;
     private LinearLayout titleBar;
     private LinearLayout searchTitle;
@@ -32,12 +33,20 @@ public class MainActivity extends TabActivity {
     }
 
     private void initView(){
-        floatMenu = (FloatingActionButton) findViewById(R.id.floatMenu);
-        floatMenu.setOnClickListener(new View.OnClickListener() {
+        floatMenu_add = (FloatingActionButton) findViewById(R.id.floatMenu_add);
+        floatMenu_add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this,AddActivity.class);
                 startActivity(intent);
+            }
+        });
+
+        floatMenu_today = (FloatingActionButton) findViewById(R.id.floatMenu_today);
+        floatMenu_today.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // 今日
             }
         });
         searchBtn=findViewById(R.id.search_btn);
@@ -75,7 +84,7 @@ public class MainActivity extends TabActivity {
         TabHost.TabSpec spec;
         // 进入界面时刷新UI：setContent(intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
 
-         // tab1 月
+        // tab1 月
         View tab1 = LayoutInflater.from(this).inflate(R.layout.tab1,null);
         spec = tabHost.newTabSpec("1").setIndicator(tab1).setContent(R.id.main_month_view);//若传递layout必须传递id
         tabHost.addTab(spec);
@@ -117,6 +126,13 @@ public class MainActivity extends TabActivity {
                     {
                         tab_title.setTextColor(Color.parseColor("#6699ff"));
                         tab_underline.setVisibility(View.VISIBLE);
+
+                        // 重要日不显示“今”
+                        if(i == 4){
+                            floatMenu_today.setVisibility(View.GONE);
+                        }else{
+                            floatMenu_today.setVisibility(View.VISIBLE);
+                        }
                     }
                     else
                     {
