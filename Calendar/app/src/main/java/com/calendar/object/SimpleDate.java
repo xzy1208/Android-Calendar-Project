@@ -1,4 +1,4 @@
-package com.calendar.bean;
+package com.calendar.object;
 
 import java.sql.Timestamp;
 

@@ -1,17 +1,12 @@
 package com.calendar.adapter;
 
-import android.content.Context;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.calendar.R;
-import com.calendar.bean.Schedule;
-import com.calendar.bean.ScheduleDate;
-import com.calendar.bean.SimpleDate;
+import com.calendar.object.SimpleDate;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;

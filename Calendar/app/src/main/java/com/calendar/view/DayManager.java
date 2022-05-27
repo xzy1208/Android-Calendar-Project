@@ -29,12 +29,17 @@ public class DayManager {
     }
     public static void setSelectMonth(int x){
         selectMonth=x;
+        changeYearForTouch();
     }
     public static void setSelectDay(int x){
         selectDay=x;
         Calendar temp=Calendar.getInstance();
         temp.set(selectYear,selectMonth,selectDay);
-        selectIndex=temp.get((Calendar.DAY_OF_MONTH))-temp.get((Calendar.DAY_OF_WEEK))+1;
+        int result=temp.get((Calendar.DAY_OF_MONTH))-temp.get((Calendar.DAY_OF_WEEK))+1;
+        if(result<0){
+            result=1;
+        }
+        selectIndex=result;
     }
     public static void setSelectDate(int a,int b,int c){
         selectYear=a;
@@ -42,12 +47,28 @@ public class DayManager {
         selectDay=c;
         Calendar temp=Calendar.getInstance();
         temp.set(a,b,c);
-        selectIndex=temp.get((Calendar.DAY_OF_MONTH))-temp.get((Calendar.DAY_OF_WEEK))+1;
+        int result=temp.get((Calendar.DAY_OF_MONTH))-temp.get((Calendar.DAY_OF_WEEK))+1;
+        if(result<0){
+            result=1;
+        }
+        selectIndex=result;
     }
     public static void setRealDate(int a,int b,int c){
         realYear=a;
         realMonth=b;
         realDay=c;
+    }
+    public static void changeYearForTouch(){
+        if(getSelectMonth()==12){
+            setSelectYear(getSelectYear()+1);
+            setSelectMonth(0);
+        }else if(getSelectMonth()==-1){
+            setSelectYear(getSelectYear()-1);
+            setSelectMonth(11);
+        }
+    }
+    public static void setSelectIndex(int i){
+        selectIndex=i;
     }
     public static int getSelectYear(){return selectYear;}
     public static int getSelectMonth(){return selectMonth;}
@@ -201,7 +222,6 @@ public class DayManager {
                 day.dateText=tempCalendar.get(Calendar.YEAR)+"-"+(tempCalendar.get(Calendar.MONTH)+1)+"-"+day.text;
                 days.add(day);
             }
-
             tempCalendar.set(Calendar.MONTH, tempCalendar.get(Calendar.MONTH) + 1);
         }
 
@@ -218,7 +238,7 @@ public class DayManager {
             day.dateText=tempCalendar.get(Calendar.YEAR)+"-"+(tempCalendar.get(Calendar.MONTH)+1)+"-"+day.text;
 
             //设置日期选择状态
-            if (i == realDay - 1) {
+            if (i == realDay - 1&&selectMonth==realMonth&&selectYear==realYear&&selectDay==realDay) {
                 day.backgroundStyle = 3;
                 day.textClor = 0xFF4384ED;
 
@@ -301,7 +321,6 @@ public class DayManager {
 
     //获取当前日期的那一周的天
     public static List<Day> createDayForWeek(int width, int heigh, boolean drawOtherDay) {
-
         Calendar tempCalendar=Calendar.getInstance();
         tempCalendar.set(selectYear,selectMonth,selectDay);
         Calendar today=tempCalendar;
@@ -332,20 +351,18 @@ public class DayManager {
 
         int count = tempCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);//获取本月天数
         tempCalendar.set(Calendar.DAY_OF_MONTH, 1);//设置1号为本月第一天
-        int firstWeekCount = tempCalendar.get(Calendar.DAY_OF_WEEK) - 1;//获取本月第一周有几天
-
-        //当天为前七天则需考虑添加上一个月天数,若正好显示则星期和日正好对应
-        //添加上一个月的天数
-
+        int firstWeekCount = tempCalendar.get(Calendar.DAY_OF_WEEK) - 1;//获取该日是星期几
         Log.d("!calendar", "todayDay"+todayDay);
         Log.d("!calendar", "todayofWeek"+todayOfWeek);
-
+        Log.d("!calendar", "firstWeekCount"+firstWeekCount);
+        //当天为前七天则需考虑添加上一个月天数,若正好显示则星期和日正好对应
+        //添加上一个月的天数
         if (todayDay<=7&&todayOfWeek+1>todayDay&&drawOtherDay) {
             tempCalendar.set(Calendar.MONTH, tempCalendar.get(Calendar.MONTH) - 1);//设置为上个月
 
-            int preCount = tempCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+            int preCount = tempCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);//上个月多少天
 
-            for (int i = 0; i < 7-firstWeekCount; i++) {
+            for (int i = 0; i <firstWeekCount; i++) {
                 day = new Day(dayWidth, dayHeight);
                 day.text = dayArray[preCount - firstWeekCount + i];
                 day.location_x = i;
@@ -358,14 +375,23 @@ public class DayManager {
 
             tempCalendar.set(Calendar.MONTH, tempCalendar.get(Calendar.MONTH) + 1);//日期设置回本月
         }
-        int afterdays=0;int xpos=0;
-        if(todayDay+6-todayOfWeek>dayArray.length-1) {
-            afterdays=dayArray.length-1;
+
+        int currentIndex=-1;int afterdays=0;int xpos=0;
+        if(todayDay<=7&&todayOfWeek+1>todayDay){
+            currentIndex=0;
+            xpos=todayOfWeek-todayDay+1;
+        }else{
+            currentIndex=todayDay-todayOfWeek-1;
+        }
+
+        if(todayDay+6-todayOfWeek>tempCalendar.getActualMaximum(Calendar.DAY_OF_MONTH)-1) {
+            afterdays=tempCalendar.getActualMaximum(Calendar.DAY_OF_MONTH)-1;
         }else{
             afterdays=todayDay+5-todayOfWeek;
         }
+
         //生成每一天的对象，其中第i次创建的是第i+1天
-        for (int i = todayDay-todayOfWeek-1; i <=afterdays ; i++) {
+        for (int i = currentIndex; i <=afterdays ; i++) {
             day = new Day(dayWidth, dayHeight);
             day.text = dayArray[i];
 
@@ -377,7 +403,7 @@ public class DayManager {
             xpos++;
 
             //设置日期选择状态
-            if (i == realDay - 1) {
+            if (i == realDay - 1&&selectMonth==realMonth&&selectYear==realYear&&selectDay==realDay) {
                 day.backgroundStyle = 3;
                 day.textClor = 0xFF4384ED;
 

@@ -1,7 +1,6 @@
-package com.calendar.bean;
+package com.calendar.object;
 
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 
 /**

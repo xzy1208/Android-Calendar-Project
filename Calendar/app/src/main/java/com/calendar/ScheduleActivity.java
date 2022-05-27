@@ -7,8 +7,8 @@ import android.widget.ListView;
 
 import com.calendar.adapter.ScheduleAdapter1;
 import com.calendar.bean.Schedule;
-import com.calendar.bean.ScheduleDate;
-import com.calendar.bean.SimpleDate;
+import com.calendar.object.ScheduleDate;
+import com.calendar.object.SimpleDate;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;

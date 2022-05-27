@@ -99,11 +99,13 @@ public class CalendarView extends View {
         Log.i("!calendar", calendar.get(Calendar.MONTH) + " " + calendar.get(Calendar.YEAR));
     }
 
-
+ public void correctTime(){
+     calendar.set(DayManager.getSelectYear(),DayManager.getSelectMonth(),DayManager.getSelectDay());
+ }
     @Override
     protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        Log.i("!calendar", "cv_calendar1: "+calendar.getTime());
+        correctTime();
+        //super.onDraw(canvas);
         //获取day集合并绘制
         List<Day> days = DayManager.createDayByCalendar(getMeasuredWidth(), getMeasuredHeight(), drawOtherDays);//获取到天
         for (Day day : days) {
@@ -116,10 +118,9 @@ public class CalendarView extends View {
             if (this.onDrawDays != null) {
                 onDrawDays.drawDayAbove(day, canvas, context, paint);
             }
-
             canvas.restore();
         }
-        Log.i("!calendar", "cv_calendar2: "+calendar.getTime());
+
     }
 
 
@@ -184,27 +185,56 @@ public class CalendarView extends View {
             if (locationY == 0) {
                 return super.onTouchEvent(event);
             } else if (locationY == 1) {//点击第一行
-                calendar.set(Calendar.DAY_OF_MONTH, 1);
-                System.out.println("xiaozhu" + calendar.get(Calendar.DAY_OF_WEEK) + ":" + locationX);
-                if (locationX < calendar.get(Calendar.DAY_OF_WEEK) - 1) {
-                    return super.onTouchEvent(event);
+                calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMinimum(Calendar.DAY_OF_MONTH));
+                int thisMonthfirstDayOfWeek=calendar.get(Calendar.DAY_OF_WEEK) - 1;
+                Log.d("!calendar", "month_thisMonthfirstDayOfWeek"+thisMonthfirstDayOfWeek);
+                if (locationX < thisMonthfirstDayOfWeek) {//点击上个月
+                    DayManager.setSelectMonth(DayManager.getSelectMonth()-1);
+                    setCalendar(Calendar.MONTH, DayManager.getSelectMonth());
+                    DayManager.setSelectDay(calendar.getActualMaximum(Calendar.DAY_OF_MONTH)-thisMonthfirstDayOfWeek+1+locationX);
+                    setCalendar(Calendar.DAY_OF_MONTH, DayManager.getSelectDay());
+
+                    Log.d("!calendar", "month_SelectIndex"+ DayManager.getSelectIndex());
+                    Log.d("!calendar", "month_changeSelectDay"+ DayManager.getSelectDay());
+                    Log.i("!calendar", "month_touch_week: " + getCalendar().getTime());
+
+                }else{
+                    calendar.set(Calendar.WEEK_OF_MONTH, (int) locationY);
+                    calendar.set(Calendar.DAY_OF_WEEK, (int) (locationX + 1));
+                    DayManager.setSelectDay(calendar.get(Calendar.DAY_OF_MONTH));
                 }
             } else if (locationY == calendar.getActualMaximum(Calendar.WEEK_OF_MONTH)) {
-                calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMinimum(Calendar.DAY_OF_MONTH));
-                if (locationX > calendar.get(Calendar.DAY_OF_WEEK) + 1) {
-                    return super.onTouchEvent(event);
+                calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+                int beforeSelectIndex=calendar.getActualMaximum(Calendar.DAY_OF_MONTH)-calendar.get(Calendar.DAY_OF_WEEK)+1;//由当前月切换到下一个月需要提前记录
+                //DayManager.setSelectIndex(calendar.getActualMaximum(Calendar.DAY_OF_MONTH)-calendar.get(Calendar.DAY_OF_WEEK)+1);
+                if (locationX > calendar.get(Calendar.DAY_OF_WEEK)-1) {//若点击下个月的日期
+                    DayManager.setSelectMonth(DayManager.getSelectMonth()+1);//DayManager中已经处理跨月的情况
+                    Log.d("!calendar", "month_SelectIndex"+beforeSelectIndex);
+                    DayManager.setSelectDay(beforeSelectIndex+locationX-getCalendar().getActualMaximum(Calendar.DAY_OF_MONTH));
+                    Log.d("!calendar", "month_changeSelectDay"+ DayManager.getSelectDay());
+                    setCalendar(Calendar.DAY_OF_MONTH, DayManager.getSelectDay());
+                    setCalendar(Calendar.MONTH, DayManager.getSelectMonth());
+                    Log.i("!calendar", "month_touch_week: " + getCalendar().getTime());
+                }else {
+                    calendar.set(Calendar.WEEK_OF_MONTH, (int) locationY);
+                    calendar.set(Calendar.DAY_OF_WEEK, (int) (locationX + 1));
+                    DayManager.setSelectDay(calendar.get(Calendar.DAY_OF_MONTH));
+
+                    Log.i("!calendar", "month_touch_week: " + getCalendar().getTime());
                 }
+            }else{
+                calendar.set(Calendar.WEEK_OF_MONTH, (int) locationY);
+                calendar.set(Calendar.DAY_OF_WEEK, (int) (locationX + 1));
+                DayManager.setSelectDay(calendar.get(Calendar.DAY_OF_MONTH));
             }
-            calendar.set(Calendar.WEEK_OF_MONTH, (int) locationY);
-            calendar.set(Calendar.DAY_OF_WEEK, (int) (locationX + 1));
-            Log.i("!calendar", "select_day"+calendar.get(Calendar.DAY_OF_MONTH));
-            DayManager.setSelectDay(calendar.get(Calendar.DAY_OF_MONTH));
+
+
             if (listener != null) {
                 listener.selectChange(this, calendar.getTime());
             }
+            Log.d("!calendar", "!!!!"+ DayManager.getSelectMonth());
             invalidate();
         }
-        return super.onTouchEvent(event);
+        return true;
     }
-
 }
