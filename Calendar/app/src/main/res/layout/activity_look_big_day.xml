@@ -74,7 +74,7 @@
                     android:gravity="center"/>
 
                 <TextView
-                    android:id="@+id/look_bigDay_time"
+                    android:id="@+id/look_bigDay_date"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="#f3f3f3"
@@ -86,7 +86,7 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/bigDay_supplement_LL"
+                android:id="@+id/look_bigDay_supplement_LL"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -105,7 +105,7 @@
                     android:paddingBottom="3dp"/>
 
                 <TextView
-                    android:id="@+id/bigDay_supplement"
+                    android:id="@+id/look_bigDay_supplement"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="说明"
@@ -140,6 +140,7 @@
                         android:background="@mipmap/repeat"/>
 
                     <TextView
+                        android:id="@+id/look_bigDay_repeatTime"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="5dp"
@@ -182,6 +183,7 @@
                         android:background="@mipmap/ring"/>
 
                     <TextView
+                        android:id="@+id/look_bigDay_remindTime"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="5dp"

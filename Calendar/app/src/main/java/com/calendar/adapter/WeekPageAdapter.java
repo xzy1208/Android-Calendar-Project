@@ -31,7 +31,7 @@ public class WeekPageAdapter extends PagerAdapter {
     private RightWeekView nextWeekView;
     private addClickListener listener;
 
-    public WeekPageAdapter(Context context ,List<View> list) {
+    public WeekPageAdapter(Context context , List<View> list) {
         mContext = context;
         weekViews = list;
         weekView=list.get(1).findViewById(R.id.week_view);

@@ -10,6 +10,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.calendar.bean.BigDay;
 import com.calendar.bean.Schedule;
 
+import java.util.List;
+
 
 /**
  * Created by Gkuma on 2022/5/24.
@@ -100,11 +102,11 @@ public class DBAdapter {
         return db.update(ScheduleTable.TABLE, updateValues, ScheduleTable.KEY_ID + "=" + id, null);
     }
 
-    public Schedule[] getOneDataFromSchedule(int id) {
+    public List<Schedule> getOneDataFromSchedule(int id) {
         Cursor results =  db.query(ScheduleTable.TABLE, ScheduleTable.getAllColumnIndex(), ScheduleTable.KEY_ID + "=" + id, null, null, null, null);
         return ScheduleTable.ConvertToSchedule(results);
     }
-    public Schedule[] getAllDataFromSchedule() {
+    public List<Schedule> getAllDataFromSchedule() {
         Cursor results = db.query(ScheduleTable.TABLE, ScheduleTable.getAllColumnIndex(), null, null, null, null, null);
         return ScheduleTable.ConvertToSchedule(results);
     }
@@ -130,11 +132,11 @@ public class DBAdapter {
         return db.update(BigDayTable.TABLE, updateValues, BigDayTable.KEY_ID + "=" + id, null);
     }
 
-    public BigDay[] getOneDataFromBigDay(int id) {
+    public List<BigDay> getOneDataFromBigDay(int id) {
         Cursor results =  db.query(BigDayTable.TABLE, BigDayTable.getAllColumnIndex(), BigDayTable.KEY_ID + "=" + id, null, null, null, null);
         return BigDayTable.ConvertToBigDay(results);
     }
-    public BigDay[] getAllDataFromBigDay() {
+    public List<BigDay> getAllDataFromBigDay() {
         Cursor results = db.query(BigDayTable.TABLE, BigDayTable.getAllColumnIndex(), null, null, null, null, null);
         return BigDayTable.ConvertToBigDay(results);
     }

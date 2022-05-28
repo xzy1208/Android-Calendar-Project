@@ -15,8 +15,8 @@
 | 日程搜索                     | 部分完成，暂停                   |
 | 日程总体显示                 | done                             |
 | 同一时间段多个日程           |                                  |
-| 单个日程详细显示             | ing                              |
-| 单个日程编辑界面             | ing                              |
+| 单个日程详细显示             | done                             |
+| 单个日程编辑界面             | done                             |
 | 倒数日总体显示               | done                             |
 | 跳转到今日                   |                                  |
 | *任务清单总体显示            |                                  |
@@ -26,24 +26,24 @@
 
 #### ②后台功能
 
-| 功能                 | 结果或进度     |
-| -------------------- | -------------- |
-| 数据库建立           | 基本实现       |
-| 添加日程             | 前端实现       |
-| 删除日程             | ing            |
-| 编辑日程             | ing            |
-| 日程提醒             | 部分完成，暂停 |
-| *日程通知            |                |
-| 日程搜索             |                |
-| 添加重要日           | 前端实现       |
-| 删除重要日           | ing            |
-| 编辑重要日           | ing            |
-| 重要日提醒           | 部分完成，暂停 |
-| *日程通知            |                |
-| *添加任务            |                |
-| *删除任务            |                |
-| *编辑任务            |                |
-| *GPS定位（用于地点） |                |
+| 功能                 | 结果或进度 |
+| -------------------- | ---------- |
+| 数据库建立           | 基本实现   |
+| 添加日程             | done       |
+| 删除日程             | done       |
+| 编辑日程             | done       |
+| 日程提醒             | done       |
+| *日程通知            |            |
+| 日程搜索             |            |
+| 添加重要日           | done       |
+| 删除重要日           | done       |
+| 编辑重要日           | done       |
+| 重要日提醒           | done       |
+| *日程通知            |            |
+| *添加任务            |            |
+| *删除任务            |            |
+| *编辑任务            |            |
+| *GPS定位（用于地点） |            |
 
 
 
@@ -373,3 +373,147 @@ tools:context=".ScheduleActivity" 绑定的是点击选项要切换的activity
 ```
 
 在MainActivity里设置FloatingActionButton控件对应的点击事件，方法和普通Button一样。
+
+### 5.短信查询
+
+开启手机短信权限。
+
+#### ①AndroidManifest.xml
+
+```
+<uses-permission android:name="android.permission.INTERNET"/>
+<uses-permission android:name="android.permission.SEND_SMS" />
+<uses-permission android:name="android.permission.RECEIVE_SMS" />
+<uses-permission android:name="android.permission.READ_SMS" />
+```
+
+#### ②观察者SmsObserver
+
+监听短信数据库，收到匹配的短信后通过Handler发送消息给主线程。
+
+```java
+public class SmsObserver extends ContentObserver {
+    private Context mContext;
+    private Handler mHandler;
+    private static int id=0; //这里必须用静态的，防止程序多次意外初始化情况
+
+    public SmsObserver(Context context,Handler handler){
+        super(handler);
+        this.mContext = context;
+        this.mHandler = handler;
+    }
+
+    public void onChange(boolean selfChange, Uri uri) {
+        super.onChange(selfChange, uri);
+
+        String code = "";
+
+        //过滤可能界面调用初始化两次的情况
+        if (uri.toString().contains("content://sms/raw")) {
+            return;
+        }
+
+        Uri inboxUri = Uri.parse("content://sms/inbox");
+        Cursor cursor = mContext.getContentResolver().query(inboxUri, null, null, null, "date desc");
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                String _id = cursor.getString(cursor.getColumnIndex("_id"));
+                //比较id 解决重复问题
+                if (id < Integer.parseInt(_id)) {
+                    id = Integer.parseInt(_id);//将获取到的当前id记录，防止重复
+                    String address = cursor.getString(cursor.getColumnIndex("address"));
+                    String body = cursor.getString(cursor.getColumnIndex("body"));
+                    Log.i("Info", body);
+                    //正则表达式d{6}的意思是连续6位是数字的就提取出来
+                    Pattern pattern = Pattern.compile("(\\d{8})");
+                    //对短信的内容进行匹配
+                    Matcher matcher = pattern.matcher(body);
+                    if (body.contains("查询") && matcher.find()) {
+                        code = matcher.group(0);
+                        Log.i("Info", code);
+
+                        try {
+                            JSONObject obj = new JSONObject();
+                            obj.put("address",address);
+                            obj.put("code",code);
+
+                            // 发送到主线程
+                            Message msMessage = new Message();
+                            msMessage.what = MainActivity.Finding;
+                            msMessage.obj = obj;
+                            mHandler.sendMessage(msMessage);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            cursor.close();
+        }
+    }
+}
+```
+
+#### ③MainActivity
+
+主线程注册观察者
+
+```
+//创建内容观察者的对象
+smsObserver = new SmsObserver(MainActivity.this, mHandler);
+//短信的uri为content://sms
+Uri uri = Uri.parse("content://sms");
+//注册内容观察者
+this.getContentResolver().registerContentObserver(uri, true, smsObserver);
+```
+
+在Handler里处理数据，并发送短信。
+
+```
+SmsManager smsManager = SmsManager.getDefault();
+smsManager.sendTextMessage(phone, null, message, null, null);
+```
+
+### 6.闹钟提醒
+
+打开手机悬浮窗、后台权限。
+
+#### ①AndroidManifest.xml
+
+```
+<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+<uses-permission android:name="android.permission.READ_PHONE_STATE" />
+<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+```
+
+#### ②MainActivity
+
+打开ClockService
+
+```
+Intent intent = new Intent(MainActivity.this, ClockService.class);
+startService(intent);
+```
+
+#### ③ClockService
+
+注册对象
+
+```
+public static AlarmManager alarmManager;
+public static  PendingIntent pi;
+public static Intent intent;
+```
+
+```
+alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE); // 获得系统提供的AlarmManager服务的对象
+intent = new Intent(ClockService.this, TaskService.class);
+pi = PendingIntent.getService(ClockService.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT); // PendingIntent是对Intent的描述，主要用来处理即将发生的事情，这个Intent会由其他程序进行调用，这里是由闹钟调用
+```
+
+设置触发时间
+
+```
+alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pi); // 用set时间不准
+```

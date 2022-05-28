@@ -101,9 +101,9 @@ public class CalendarView extends View {
 
     }
 
- public void correctTime(){
-     calendar.set(DayManager.getSelectYear(),DayManager.getSelectMonth(),DayManager.getSelectDay());
- }
+    public void correctTime(){
+        calendar.set(DayManager.getSelectYear(),DayManager.getSelectMonth(),DayManager.getSelectDay());
+    }
     @Override
     protected void onDraw(Canvas canvas) {
         //correctTime();

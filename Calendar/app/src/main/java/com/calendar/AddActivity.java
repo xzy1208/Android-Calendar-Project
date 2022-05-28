@@ -4,22 +4,30 @@ import android.app.TabActivity;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TabHost;
 import android.widget.TextView;
 
+import com.calendar.db.DBAdapter;
+
 public class AddActivity extends TabActivity {
 
-    Button cancel_add_date;
-    Button finish_add_date;
-    TextView add_title;
+    public DBAdapter db;
+
+    private Button cancel_add_date;
+    private Button finish_add_date;
+    private TextView add_title;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add);
+
+        db = DBAdapter.setDBAdapter(AddActivity.this);
+        db.open();
 
         tabPaging();
 
@@ -28,6 +36,9 @@ public class AddActivity extends TabActivity {
 
     private void initView(){
         cancel_add_date = (Button)findViewById(R.id.cancel_add_date);
+        finish_add_date = (Button)findViewById(R.id.finish_add_date);
+        add_title = (TextView)findViewById(R.id.add_title);
+
         cancel_add_date.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -35,17 +46,21 @@ public class AddActivity extends TabActivity {
             }
         });
 
-        finish_add_date = (Button)findViewById(R.id.finish_add_date);
         finish_add_date.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // 加到数据库
-
-                AddActivity.this.finish();
+                if(getTabHost().getCurrentTab() == 0){ // 日程
+                    Intent intent = new Intent();
+                    intent.setAction("addSchedule");
+                    sendOrderedBroadcast(intent, null);
+                    Log.e("发送一条广播","addSchedule");
+                }else if(getTabHost().getCurrentTab() == 1){ // 重要日
+                    Intent intent = new Intent();
+                    intent.setAction("addBigDay");
+                    sendOrderedBroadcast(intent, null);
+                }
             }
         });
-
-        add_title = (TextView)findViewById(R.id.add_title);
     }
 
     private void tabPaging() {

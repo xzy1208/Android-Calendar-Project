@@ -3,11 +3,13 @@ package com.calendar;
 import android.app.TabActivity;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.ViewPager;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,11 +28,26 @@ import com.calendar.view.RightMonthView;
 import com.calendar.view.RightWeekView;
 import com.calendar.view.WeekView;
 
+import com.calendar.Observer.SmsObserver;
+import com.calendar.bean.FindSchedule;
+import com.calendar.bean.Schedule;
+import com.calendar.bean.ScheduleDate;
+import com.calendar.bean.SimpleDate;
+import com.calendar.db.DBAdapter;
+import com.calendar.service.ClockService;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 public class MainActivity extends TabActivity {
+
+    public DBAdapter db;
 
     private FloatingActionButton floatMenu_add;
     private FloatingActionButton floatMenu_today;
@@ -55,6 +72,10 @@ public class MainActivity extends TabActivity {
 
     public static Handler handler;
 
+    public static int Finding = 1;
+    SmsObserver smsObserver;
+    private Handler mHandler;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,9 +92,21 @@ public class MainActivity extends TabActivity {
             }
         };
 
+        db = DBAdapter.setDBAdapter(MainActivity.this);
+        db.open();
+
         initView();
 
         tabPaging();
+
+        sending();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        setClock();
     }
 
     private void initView(){
@@ -132,6 +165,13 @@ public class MainActivity extends TabActivity {
                 }
             }
         });
+
+        // 查询日程 存在FindSchedule里 后续可以直接用FindSchedule.scheduleDateList拿 增删改后也这样操作修改变量
+        List<Schedule> scheduleList = db.getAllDataFromSchedule();
+        if(scheduleList != null){
+            FindSchedule fs = new FindSchedule(scheduleList);
+        }
+
         //日历
         monthViewPager = ((ViewPager) findViewById(R.id.month_pager));
         LayoutInflater inflater = LayoutInflater.from(this);
@@ -146,7 +186,7 @@ public class MainActivity extends TabActivity {
         monthPageAdapter2=new MonthPageAdapter2(this,monthViews);*/
 
         monthViewPager.setAdapter(new MonthPageAdapter(this,monthViews));
-       // monthViewPager.setAdapter(new MonthPageAdapter2(this,monthViews));
+        // monthViewPager.setAdapter(new MonthPageAdapter2(this,monthViews));
         monthViewPager.setCurrentItem(1);
         monthViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
 
@@ -188,7 +228,7 @@ public class MainActivity extends TabActivity {
                     //方案1.5
                     //rightMonthView.invalidate();
                     //leftMonthView.invalidate();
-                   // rightMonthView.invalidate();
+                    // rightMonthView.invalidate();
                     //方案2 ok！
                     /*leftView.setVisibility(View.GONE);
                     rightView.setVisibility(View.GONE);
@@ -210,9 +250,9 @@ public class MainActivity extends TabActivity {
                     //monthView.setCalendar(Calendar.MONTH,DayManager.getSelectMonth());
 
                     monthViewPager.setCurrentItem(1,false);
-                   //leftMonthView.invalidate();
+                    //leftMonthView.invalidate();
                     //rightMonthView.invalidate();
-                   // leftView.setText(DayManager.getSelectMonth()-1+"月");
+                    // leftView.setText(DayManager.getSelectMonth()-1+"月");
                     //rightView.setText(DayManager.getSelectMonth()+1+"月");
                     //方案2 ok！
                     /*leftView.setVisibility(View.GONE);
@@ -252,7 +292,7 @@ public class MainActivity extends TabActivity {
             }
             @Override
             public void onPageScrollStateChanged(int state) {
-               
+
                 WeekView weekView=weekViewPager.findViewWithTag(1);
                 LeftWeekView leftWeekView=weekViewPager.findViewWithTag(0);
                 RightWeekView rightWeekView=weekViewPager.findViewWithTag(2);
@@ -365,5 +405,84 @@ public class MainActivity extends TabActivity {
                 }
             }
         });
+    }
+
+    public void setClock(){
+        Intent intent = new Intent(MainActivity.this, ClockService.class);
+        startService(intent);
+    }
+
+    public void sending(){
+        mHandler = new Handler(){
+            public void handleMessage(android.os.Message msg) {
+                if (msg.what == Finding) {
+                    JSONObject obj = (JSONObject)msg.obj;
+                    try{
+                        String phone = obj.getString("address");
+                        String dateStr = obj.getString("code");// 日期
+                        int year = Integer.parseInt(dateStr.substring(0,4));
+                        int month = Integer.parseInt(dateStr.substring(4,6));
+                        int day = Integer.parseInt(dateStr.substring(6,8));
+                        Calendar c = Calendar.getInstance();
+                        c.set(year,month-1,day);
+                        Timestamp date = new Timestamp(c.getTimeInMillis());
+                        date.setHours(0);
+                        date.setMinutes(0);
+                        date.setSeconds(0);
+                        date.setNanos(0);
+                        Log.e("查询日期",date.getTime()+"");
+
+                        // 查询数据
+                        List<String> scheduleStrList = new ArrayList<>();
+                        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+                        String scheduleStr;
+                        List<ScheduleDate> scheduleDateList = FindSchedule.scheduleDateList;
+                        int i;
+                        for(i=0;i<scheduleDateList.size();i++){
+                            Log.e("日期",scheduleDateList.get(i).date.getTime()+"");
+                            if(date.getTime() == scheduleDateList.get(i).date.getTime()){
+                                List<SimpleDate> simpleDateList = scheduleDateList.get(i).simpleDateList;
+                                for(int j=0;j<simpleDateList.size();j++){
+                                    if(simpleDateList.get(j).type == 0){
+                                        scheduleStr = (j+1)+"."+simpleDateList.get(j).title+"：全天";
+                                    }else if(simpleDateList.get(j).type == 1){
+                                        scheduleStr = (j+1)+"."+simpleDateList.get(j).title+"："+sdf.format(simpleDateList.get(j).startTime)+"开始";
+                                    }else if(simpleDateList.get(j).type == 2){
+                                        scheduleStr = (j+1)+"."+simpleDateList.get(j).title+"："+sdf.format(simpleDateList.get(j).endTime)+"结束";
+                                    }else{
+                                        scheduleStr = (j+1)+"."+simpleDateList.get(j).title+"："+sdf.format(simpleDateList.get(j).startTime)+"至"+sdf.format(simpleDateList.get(j).endTime);
+                                    }
+                                    scheduleStrList.add(scheduleStr);
+                                }
+                                break;
+                            }
+                        }
+                        if(i == scheduleDateList.size()){
+                            scheduleStr = "无日程安排";
+                            scheduleStrList.add(scheduleStr);
+                        }
+
+                        // 发送短信
+                        SmsManager smsManager = SmsManager.getDefault();
+                        for(int x=0;x<scheduleStrList.size();x++){
+                            smsManager.sendTextMessage(phone, null, scheduleStrList.get(x), null, null);
+                            Log.e("发送短信",scheduleStrList.get(x));
+                        }
+
+                    }catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    // 发送短信权限、访问短信权限
+                }
+            };
+        };
+
+        //创建内容观察者的对象
+        smsObserver = new SmsObserver(MainActivity.this, mHandler);
+        //短信的uri为content://sms
+        Uri uri = Uri.parse("content://sms");
+        //注册内容观察者
+        this.getContentResolver().registerContentObserver(uri, true, smsObserver);
     }
 }

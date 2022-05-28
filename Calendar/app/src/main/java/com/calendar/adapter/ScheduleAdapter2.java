@@ -6,7 +6,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.calendar.R;
-import com.calendar.object.SimpleDate;
+import com.calendar.bean.SimpleDate;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;

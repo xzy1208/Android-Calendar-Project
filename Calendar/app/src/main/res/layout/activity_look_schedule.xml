@@ -154,7 +154,7 @@
                         android:background="@mipmap/repeat"/>
 
                     <TextView
-                        android:id="@+id/look_schedule_repeat_time"
+                        android:id="@+id/look_schedule_repeatTime"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="5dp"
@@ -197,7 +197,7 @@
                         android:background="@mipmap/ring"/>
 
                     <TextView
-                        android:id="@+id/look_schedule_remind_time"
+                        android:id="@+id/look_schedule_remindTime"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="5dp"

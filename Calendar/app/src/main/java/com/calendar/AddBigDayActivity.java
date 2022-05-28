@@ -2,6 +2,10 @@ package com.calendar;
 
 import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -13,47 +17,71 @@ import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.PopupMenu;
 import android.widget.Switch;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.calendar.bean.BigDay;
+import com.calendar.db.DBAdapter;
+import com.calendar.dialog.NumberPickerDialog;
+
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 public class AddBigDayActivity extends Activity {
 
-    private Button bigDay_time;
-    private Button bigDay_ring_time;
+    DBAdapter db;
+
+    private TextView bigDay_title;
+    private Button bigDay_date;
     private Switch bigDay_repeat;
     private LinearLayout bigDay_repeat_LL;
     private Button bigDay_repeatInterval;
     private Button bigDay_repeatCycle;
+    private Button bigDay_remindTime;
+    private TextView bigDay_supplement;
 
     private Calendar time;// 日期
-    private int bigDay_ring_time_type; // 记录选择的提醒时间类型 0不提醒 1分钟 2小时 3天
     private int bigDay_repeatInterval_num;// 重复数字
-    private int bigDay_repeatCycle_num;// 重复文字 1天 2周 3月 4年
+    private int bigDay_repeatCycle_num;// 重复文字
+    private int bigDay_remindTime_num;// 提醒
+
+    private BroadcastReceiver mReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_bigday);
 
+        db = DBAdapter.setDBAdapter(AddBigDayActivity.this);
+        db.open();
+
         initView();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mReceiver);
+    }
+
     private void initView(){
-        bigDay_time = (Button)findViewById(R.id.bigDay_time);
-        bigDay_ring_time = (Button)findViewById(R.id.bigDay_ring_time);
+        bigDay_title = (TextView)findViewById(R.id.bigDay_title);
+        bigDay_date = (Button)findViewById(R.id.bigDay_date);
         bigDay_repeat = (Switch)findViewById(R.id.bigDay_repeat);
         bigDay_repeat_LL = (LinearLayout)findViewById(R.id.bigDay_repeat_LL);
         bigDay_repeatInterval = (Button)findViewById(R.id.bigDay_repeatInterval);
         bigDay_repeatCycle = (Button)findViewById(R.id.bigDay_repeatCycle);
+        bigDay_remindTime = (Button)findViewById(R.id.bigDay_remindTime);
+        bigDay_supplement = (TextView)findViewById(R.id.bigDay_supplement);
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
         time = Calendar.getInstance();
         String dateStr = sdf.format(time.getTime());
-        bigDay_time.setText(dateStr);
+        bigDay_date.setText(dateStr);
 
-        bigDay_time.setOnClickListener(new View.OnClickListener() {
+        bigDay_date.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Calendar mcalendar = Calendar.getInstance();
@@ -63,14 +91,14 @@ public class AddBigDayActivity extends Activity {
                         time.set(year,month,dayOfMonth);
                         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                         String dateStr = sdf.format(time.getTime());
-                        bigDay_time.setText(dateStr);
+                        bigDay_date.setText(dateStr);
                     }
                 },mcalendar.get(Calendar.YEAR),mcalendar.get(Calendar.MONTH),mcalendar.get(Calendar.DAY_OF_MONTH)).show();
             }
         });
 
-        bigDay_ring_time_type = 0;
-        bigDay_ring_time.setOnClickListener(new View.OnClickListener() {
+        bigDay_remindTime_num = 0;
+        bigDay_remindTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // View当前PopupMenu显示的相对View的位置
@@ -81,8 +109,8 @@ public class AddBigDayActivity extends Activity {
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
-                        bigDay_ring_time_type = item.getItemId();
-                        bigDay_ring_time.setText(item.getTitle());
+                        bigDay_remindTime_num = item.getOrder();
+                        bigDay_remindTime.setText(item.getTitle());
                         return false;
                     }
                 });
@@ -103,7 +131,6 @@ public class AddBigDayActivity extends Activity {
                 if (isChecked)
                 {
                     bigDay_repeat_LL.setVisibility(View.VISIBLE);
-
                 }else{
                     bigDay_repeat_LL.setVisibility(View.GONE);
                 }
@@ -118,7 +145,7 @@ public class AddBigDayActivity extends Activity {
                     @Override
                     public void onNumberSelected(NumberPicker view, int number) {
                         bigDay_repeatInterval_num = number;
-                        bigDay_repeatInterval.setText(bigDay_repeatInterval_num+"");
+                        bigDay_repeatInterval.setText(number+"");
                     }
                 }, bigDay_repeatInterval_num).show();
             }
@@ -136,7 +163,7 @@ public class AddBigDayActivity extends Activity {
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
-                        bigDay_repeatCycle_num = item.getItemId()+1;
+                        bigDay_repeatCycle_num = item.getOrder();
                         bigDay_repeatCycle.setText(item.getTitle());
                         return false;
                     }
@@ -150,5 +177,59 @@ public class AddBigDayActivity extends Activity {
                 popupMenu.show();
             }
         });
+
+        //注册广播
+        mReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                if (action.equals("addBigDay")) {
+                    Log.e("收到一条广播","addBigDay");
+                    String title = bigDay_title.getText().toString();
+                    Timestamp date = new Timestamp(time.getTimeInMillis());
+                    date.setHours(0);
+                    date.setMinutes(0);
+                    date.setSeconds(0);
+                    date.setNanos(0);
+                    Timestamp remindTime = null;
+                    int type = 0;
+                    String supplement = bigDay_supplement.getText().toString();
+
+                    if(title == null || title.equals("")){
+                        Toast.makeText(AddBigDayActivity.this,"标题不可为空",Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    if(!bigDay_repeat.isChecked()){ // 不重复
+                        bigDay_repeatCycle_num = 0;
+                    }
+
+                    Log.e("remindTime_num",bigDay_remindTime_num+"");
+                    if(bigDay_remindTime_num == 0){
+                        remindTime = new Timestamp(0);
+                    }else if(bigDay_remindTime_num == 1){
+                        remindTime = new Timestamp(date.getTime()-10*60*1000);
+                    }else if(bigDay_remindTime_num == 2){
+                        remindTime = new Timestamp(date.getTime()-1*60*60*1000);
+                    }else if(bigDay_remindTime_num == 3){
+                        remindTime = new Timestamp(date.getTime()-1*24*60*60*1000);
+                    }
+                    Log.e("remindTime",remindTime.getTime()+"");
+
+                    if(date.getTime() - new Timestamp(System.currentTimeMillis()).getTime() >= 0){
+                        type = 1;//倒数
+                    }
+
+                    BigDay bigDay = new BigDay(title,date,bigDay_repeatInterval_num,bigDay_repeatCycle_num,remindTime,type,supplement);
+                    db.insertBigDay(bigDay);
+                    Log.e("db.insertBigDay","执行一次");
+
+                    AddBigDayActivity.this.finish();
+                }
+            }
+        };
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("addBigDay");
+        AddBigDayActivity.this.registerReceiver(mReceiver, filter);
     }
 }

@@ -17,19 +17,15 @@ public class BigDay {
     public Timestamp remindTime;
     public int type;//0：正数，1：倒数
     public String supplement;
-    //其他字段
-    public long num;
 
     public BigDay(){}
-    public BigDay(String title, int type, Timestamp date){
+    public BigDay(String title, Timestamp date, int repeatInterval, int repeatCycle, Timestamp remindTime, int type, String supplement){
         this.title = title;
-        this.type = type;
         this.date = date;
-        if(type == 1){
-            this.num = (date.getTime() - new Timestamp(System.currentTimeMillis()).getTime())/(24*60*60*1000);
-        }else{
-            this.num = (new Timestamp(System.currentTimeMillis()).getTime() - date.getTime())/(24*60*60*1000);
-        }
+        this.repeatInterval = repeatInterval;
+        this.repeatCycle = repeatCycle;
+        this.remindTime = remindTime;
+        this.type = type;
+        this.supplement = supplement;
     }
-
 }

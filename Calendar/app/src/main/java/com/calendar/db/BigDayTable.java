@@ -7,6 +7,8 @@ import android.database.Cursor;
 import com.calendar.bean.BigDay;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Gkuma on 2022/5/24.
@@ -23,50 +25,60 @@ public final class BigDayTable {
     public static final String KEY_REMINDTIME="remindTime";
     public static final String KEY_TYPE="type";//0：正数；1：倒数
     public static final String KEY_SUPPLEMENT="supplement";
-    /*待修改，
-          未添加*字段
-          此处开始时间、结束时间、提醒时间可能从前端获取默认值
-     */
+
     public static final String CREATE_TABLE_BIGDAY = "create table " +
             TABLE + " (" + KEY_ID + " integer primary key autoincrement, " +
             KEY_TITLE+ " text not null, " +
-            KEY_DATE+ " DATETIME not null DEFAULT (datetime()) ) "+
+            KEY_DATE+ " DATETIME not null DEFAULT (datetime()), "+
+            KEY_REPEATINTERVAL+ " integer DEFAULT (0), "+
+            KEY_REPEATCYCLE+ " integer DEFAULT (0), "+
+            KEY_REMINDTIME+ " DATETIME, "+
             KEY_TYPE+ " int not null, " +
-            KEY_SUPPLEMENT+"text );";
+            KEY_SUPPLEMENT+" text );";
 
     public static ContentValues CovertToContentValues(BigDay b){
         ContentValues newValues = new ContentValues();
         newValues.put(KEY_TITLE, b.title);
         newValues.put(KEY_DATE,b.date.toString());
+        newValues.put(KEY_REPEATINTERVAL,b.repeatInterval);
+        newValues.put(KEY_REPEATCYCLE,b.repeatCycle);
+        newValues.put(KEY_REMINDTIME,b.remindTime.toString());
         newValues.put(KEY_TYPE, b.type);
         newValues.put(KEY_SUPPLEMENT,b.supplement);
         return newValues;
     }
-    public static BigDay[] ConvertToBigDay(Cursor cursor) {
+    public static List<BigDay> ConvertToBigDay(Cursor cursor) {
         int resultCounts = cursor.getCount();
         if (resultCounts == 0 || !cursor.moveToFirst()) {
             return null;
         }
-        BigDay[] BigDays = new BigDay[resultCounts];
+        List<BigDay> bigDays = new ArrayList<>();
         for (int i = 0; i < resultCounts; i++) {
-            BigDays[i] = new BigDay();
-            BigDays[i].id = cursor.getInt(0);
-            BigDays[i].title = cursor.getString(cursor.getColumnIndex(KEY_TITLE));
-            BigDays[i].date = Timestamp.valueOf(cursor.getString(cursor.getColumnIndex(KEY_DATE)));
-            BigDays[i].id = cursor.getInt(3);
-            BigDays[i].supplement = cursor.getString(cursor.getColumnIndex(KEY_SUPPLEMENT));
+            BigDay bigDay = new BigDay();
+            bigDay.id = cursor.getInt(0);
+            bigDay.title = cursor.getString(cursor.getColumnIndex(KEY_TITLE));
+            bigDay.date = Timestamp.valueOf(cursor.getString(cursor.getColumnIndex(KEY_DATE)));
+            bigDay.repeatInterval = cursor.getInt(3);
+            bigDay.repeatCycle = cursor.getInt(4);
+            bigDay.remindTime = Timestamp.valueOf(cursor.getString(cursor.getColumnIndex(KEY_REMINDTIME)));
+            bigDay.type = cursor.getInt(6);
+            bigDay.supplement = cursor.getString(cursor.getColumnIndex(KEY_SUPPLEMENT));
+            bigDays.add(bigDay);
             cursor.moveToNext();
         }
-        return BigDays;
+        return bigDays;
     }
     public static String [] getAllColumnIndex(){
-        int num=5;//字段总数
+        int num=8;//字段总数
         String[] s =new String[num];
         s[0]=KEY_ID;
         s[1]=KEY_TITLE;
         s[2]=KEY_DATE;
-        s[3]=KEY_TYPE;
-        s[4]=KEY_SUPPLEMENT;
+        s[3]=KEY_REPEATINTERVAL;
+        s[4]=KEY_REPEATCYCLE;
+        s[5]=KEY_REMINDTIME;
+        s[6]=KEY_TYPE;
+        s[7]=KEY_SUPPLEMENT;
         return s;
     }
 }

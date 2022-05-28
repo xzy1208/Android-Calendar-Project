@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.calendar.bean.BigDay;
 import com.calendar.R;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 public class LVAdapater extends BaseAdapter {
@@ -63,7 +64,9 @@ public class LVAdapater extends BaseAdapter {
             holder.item_num.setBackgroundColor(Color.parseColor("#ff9933"));
             holder.item_day.setBackgroundResource(R.drawable.shape_corner_right_yellow);
         }
-        holder.item_num.setText(bigDay.num+"");
+
+        long num = Math.abs(bigDay.date.getTime() - new Timestamp(System.currentTimeMillis()).getTime())/(24*60*60*1000);
+        holder.item_num.setText(num+"");
 
         return convertView;
     }

@@ -32,7 +32,7 @@ public class MonthPageAdapter extends PagerAdapter {
     private RightMonthView nextMonthView;
     private addClickListener listener;
 
-    public MonthPageAdapter(Context context ,List<View> list) {
+    public MonthPageAdapter(Context context , List<View> list) {
         mContext = context;
         monthViews = list;
         monthView=list.get(1).findViewById(R.id.month_view);

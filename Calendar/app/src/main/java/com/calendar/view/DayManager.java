@@ -23,7 +23,7 @@ public class DayManager {
     private static int realYear=-1;
     private static int realMonth=-1;
     private static int realDay=-1;
-    
+
     public static void setSelectYear(int x){
         selectYear=x;
     }
@@ -95,7 +95,7 @@ public class DayManager {
     }
     public static int getLastMonth(){
         int m=selectMonth-1;
-       if(m==0){
+        if(m==0){
             m=11;
         }
         return m;
@@ -110,7 +110,7 @@ public class DayManager {
     static String[] weeks = {"日", "一", "二", "三", "四", "五", "六"};
     static String[] dayArray = {"01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15",
             "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31"};
-    
+
 
     /**
      * 储存正常天数
@@ -296,7 +296,7 @@ public class DayManager {
 
         //添加下一个月的天数
         int lastCount = tempCalendar.get(Calendar.DAY_OF_WEEK);//本月最后一周有几天
-       // Log.i("!Calendar", "lastCount: "+lastCount);
+        // Log.i("!Calendar", "lastCount: "+lastCount);
 
         for (int i = 0; i < 7 - lastCount; i++) {
             day = new Day(dayWidth, dayHeight);
@@ -397,8 +397,8 @@ public class DayManager {
                 day.textClor = 0xFFFAFBFE;
 
             } else {*/
-                day.backgroundStyle = 1;
-                day.textClor = 0xFF8696A5;
+            day.backgroundStyle = 1;
+            day.textClor = 0xFF8696A5;
             //}
             //设置工作状态
             if (restDays.contains(1 + i)) {
@@ -518,9 +518,9 @@ public class DayManager {
                 day.textClor = 0xFFFAFBFE;
 
             } else {*/
-                day.backgroundStyle = 1;
-                day.textClor = 0xFF8696A5;
-           // }
+            day.backgroundStyle = 1;
+            day.textClor = 0xFF8696A5;
+            // }
             //设置工作状态
             if (restDays.contains(1 + i)) {
                 day.workState = 0;
@@ -552,8 +552,8 @@ public class DayManager {
             day.dateText=tempCalendar.get(Calendar.YEAR)+"-"+(tempCalendar.get(Calendar.MONTH)+2)+"-"+day.text;
             days.add(day);
         }
-       // Log.i("!calendar", "createDayByCalendar: "+tempCalendar.getTime());
-       // setSelectMonth(getSelectMonth()-1);
+        // Log.i("!calendar", "createDayByCalendar: "+tempCalendar.getTime());
+        // setSelectMonth(getSelectMonth()-1);
         return days;
     }
     /**
@@ -703,7 +703,7 @@ public class DayManager {
         //添加下一个月的天数
         int lastCount = today.get(Calendar.DAY_OF_WEEK);//本月最后一周有几天
 
-       if(today.getActualMaximum(Calendar.DAY_OF_MONTH)-todayDay<=7&&today.getActualMaximum(Calendar.DAY_OF_MONTH)-todayDay-7!=todayOfWeek){
+        if(today.getActualMaximum(Calendar.DAY_OF_MONTH)-todayDay<=7&&today.getActualMaximum(Calendar.DAY_OF_MONTH)-todayDay-7!=todayOfWeek){
             for (int i = 0; i < 7 - lastCount; i++) {
                 day = new Day(dayWidth, dayHeight);
                 day.text = dayArray[i];

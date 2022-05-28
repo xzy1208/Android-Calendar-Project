@@ -2,6 +2,7 @@ package com.calendar.adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,10 +13,8 @@ import android.widget.TextView;
 
 import com.calendar.LookScheduleActivity;
 import com.calendar.R;
-import com.calendar.ScheduleActivity;
-import com.calendar.bean.Schedule;
-import com.calendar.object.ScheduleDate;
-import com.calendar.object.SimpleDate;
+import com.calendar.bean.ScheduleDate;
+import com.calendar.bean.SimpleDate;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -72,7 +71,7 @@ public class ScheduleAdapter1 extends BaseAdapter{
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
-        SimpleDateFormat sdf = new SimpleDateFormat("MM月dd日");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日");
         String dateStr = sdf.format(calendar.getTime());
         String[] weekDays = {"星期日","星期一","星期二","星期三","星期四","星期五","星期六"};
         holder.schedule_item_date.setText(dateStr+" "+ weekDays[calendar.get(Calendar.DAY_OF_WEEK)-1]);
@@ -93,42 +92,9 @@ public class ScheduleAdapter1 extends BaseAdapter{
         @Override
         public void onItemClick(AdapterView parent, View view, int position, long id) {
             TextView schedule_item_id = (TextView)view.findViewById(R.id.schedule_item_id);
-            Schedule schedule = ScheduleActivity.getSchedule(Integer.parseInt(schedule_item_id.getText().toString()));
 
             Intent intent = new Intent(mContext, LookScheduleActivity.class);;
-
-            intent.putExtra("id",schedule.id);
-            //
-            intent.putExtra("title",schedule.title);
-            intent.putExtra("place",schedule.place);
-
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(schedule.startTime);
-            SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd");
-            SimpleDateFormat sdf2 = new SimpleDateFormat("HH:mm");
-            String dateStr1 = sdf1.format(calendar.getTime());
-            String dateStr2 = "";
-            if(schedule.isAllDay == 0){
-                dateStr2 = sdf2.format(calendar.getTime());
-            }
-            String[] weekDays = {"星期日","星期一","星期二","星期三","星期四","星期五","星期六"};
-            intent.putExtra("startTime",dateStr1+" "+ weekDays[calendar.get(Calendar.DAY_OF_WEEK)-1]+" "+dateStr2);
-
-            calendar = Calendar.getInstance();
-            calendar.setTime(schedule.endTime);
-            dateStr1 = sdf1.format(calendar.getTime());
-            dateStr2 = "";
-            if(schedule.isAllDay == 0){
-                dateStr2 = sdf2.format(calendar.getTime());
-            }
-            intent.putExtra("endTime",dateStr1+" "+ weekDays[calendar.get(Calendar.DAY_OF_WEEK)-1]+" "+dateStr2);
-
-            intent.putExtra("repeatInterval",schedule.repeatInterval);
-            intent.putExtra("repeatCycle",schedule.repeatCycle);
-            intent.putExtra("remindTime",schedule.remindTime);
-            intent.putExtra("supplement",schedule.supplement);
-            //
-
+            intent.putExtra("id",Integer.parseInt(schedule_item_id.getText().toString()));
             mContext.startActivity(intent);
         }
     }
