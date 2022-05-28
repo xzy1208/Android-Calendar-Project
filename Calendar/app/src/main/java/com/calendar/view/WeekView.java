@@ -46,6 +46,7 @@ public class WeekView extends CalendarView {
             }
             canvas.restore();
         }
+        correctTime();
     }
     @Override
     public boolean onTouchEvent(MotionEvent event) {

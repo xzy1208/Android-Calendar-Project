@@ -55,10 +55,10 @@
                 android:id="@android:id/tabs"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingBottom="15dp"
                 android:paddingLeft="50dp"
                 android:paddingRight="50dp"
-                android:paddingTop="15dp" />
+                android:paddingTop="15dp"
+                />
 
             <FrameLayout
                 android:id="@android:id/tabcontent"
@@ -67,15 +67,15 @@
                 >
                 <LinearLayout
                     android:id="@+id/main_month_view"
-                    android:layout_height="match_parent"
-                    android:layout_width="match_parent">
-                    <include layout="@layout/month_view"/>
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content">
+                    <include layout="@layout/month_viewpager"/>
                 </LinearLayout>
                 <LinearLayout
                     android:id="@+id/main_week_view"
-                    android:layout_height="match_parent"
-                    android:layout_width="match_parent">
-                    <include layout="@layout/week_view"/>
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content">
+                    <include layout="@layout/week_viewpager"/>
                 </LinearLayout>
             </FrameLayout>
 

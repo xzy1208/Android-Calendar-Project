@@ -97,6 +97,8 @@ public class CalendarView extends View {
         DayManager.setRealDate(calendar.get(Calendar.YEAR),calendar.get(Calendar.MONTH),calendar.get(Calendar.DAY_OF_MONTH));
         DayManager.setSelectDate(calendar.get(Calendar.YEAR),calendar.get(Calendar.MONTH),calendar.get(Calendar.DAY_OF_MONTH));
         Log.i("!calendar", calendar.get(Calendar.MONTH) + " " + calendar.get(Calendar.YEAR));
+
+
     }
 
  public void correctTime(){
@@ -104,7 +106,7 @@ public class CalendarView extends View {
  }
     @Override
     protected void onDraw(Canvas canvas) {
-        correctTime();
+        //correctTime();
         //super.onDraw(canvas);
         //获取day集合并绘制
         List<Day> days = DayManager.createDayByCalendar(getMeasuredWidth(), getMeasuredHeight(), drawOtherDays);//获取到天
@@ -120,7 +122,7 @@ public class CalendarView extends View {
             }
             canvas.restore();
         }
-
+        //correctTime();
     }
 
 
@@ -159,7 +161,7 @@ public class CalendarView extends View {
         /**
          * 层次在原画下
          * 画天的回调，返回true 则覆盖默认的画面，返回
-         *
+         * interface OnSelectChangeListener {
          * @return
          */
         boolean drawDay(Day day, Canvas canvas, Context context, Paint paint);

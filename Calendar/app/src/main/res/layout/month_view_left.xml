@@ -6,8 +6,8 @@
     android:orientation="vertical"
     android:layout_marginLeft="10dp"
     android:layout_marginRight="10dp">
-    <com.calendar.view.MonthView
-        android:id="@+id/month_view"
+    <com.calendar.view.LeftMonthView
+        android:id="@+id/left_month_view"
         android:layout_width="match_parent"
         android:layout_height="300dp"
         android:layout_marginLeft="10dp"
