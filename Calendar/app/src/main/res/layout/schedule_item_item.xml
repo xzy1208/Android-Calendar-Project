@@ -11,6 +11,12 @@
         android:layout_height="wrap_content"
         android:visibility="gone"/>
 
+    <CheckBox
+        android:id="@+id/schedule_item_delCB"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_gravity="center" />
+
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="50dp"

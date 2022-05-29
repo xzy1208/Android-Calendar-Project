@@ -13,11 +13,15 @@ public class SimpleDate {
     public Timestamp endTime;// 结束时间
     public String title;// 事件
 
+    public boolean isChecked;// 删除选中
+
     public SimpleDate(int id, int type, Timestamp startTime, Timestamp endTime, String title){
         this.id = id;
         this.type = type;
         this.startTime = startTime;
         this.endTime = endTime;
         this.title = title;
+
+        isChecked = false;
     }
 }

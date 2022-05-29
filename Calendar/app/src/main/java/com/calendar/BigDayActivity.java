@@ -82,6 +82,25 @@ public class BigDayActivity extends Activity {
             TextView bigDayFirstDate = (TextView)findViewById(R.id.bigDayFirstDate);
             TextView bigDayFirstNum = (TextView)findViewById(R.id.bigDayFirstNum);
 
+            Timestamp t = new Timestamp(System.currentTimeMillis());
+            t.setHours(0);
+            t.setMinutes(0);
+            t.setSeconds(0);
+            t.setNanos(0);
+            if(bigDay.type == 1 && bigDay.repeatCycle != 0){// 重复 修改前端显示date
+                while(bigDay.date.getTime() < t.getTime()){// 一直加重复周期，直到日期大于今天
+                    if(bigDay.repeatCycle == 1){
+                        bigDay.date.setDate(bigDay.date.getDate()+bigDay.repeatInterval);
+                    }else if(bigDay.repeatCycle == 2){
+                        bigDay.date.setDate(bigDay.date.getDate()+7*bigDay.repeatInterval);
+                    }else if(bigDay.repeatCycle == 3){
+                        bigDay.date.setMonth(bigDay.date.getMonth()+bigDay.repeatInterval);
+                    }else if(bigDay.repeatCycle == 4){
+                        bigDay.date.setYear(bigDay.date.getYear()+bigDay.repeatInterval);
+                    }
+                }
+            }
+
             if(bigDay.type == 1){
                 bigDayFirstTitle.setText(bigDay.title+"还有");
             }else{
@@ -95,7 +114,7 @@ public class BigDayActivity extends Activity {
             String[] weekDays = {"星期日","星期一","星期二","星期三","星期四","星期五","星期六"};
             bigDayFirstDate.setText("目标日："+dateStr+" "+ weekDays[calendar.get(Calendar.DAY_OF_WEEK)-1]);
 
-            long num = Math.abs(bigDay.date.getTime() - new Timestamp(System.currentTimeMillis()).getTime())/(24*60*60*1000);
+            long num = Math.abs(bigDay.date.getTime() - t.getTime())/(24*60*60*1000);
             bigDayFirstNum.setText(num+"");
 
             bigDayFirstLL.setVisibility(View.VISIBLE);

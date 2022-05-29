@@ -93,8 +93,7 @@ public class FindSchedule {
                 // 判断循环
                 if(s.repeatCycle == 0){
                     break;
-                }
-                else if(s.repeatCycle == 1){
+                } else if(s.repeatCycle == 1){
                     s.startTime.setDate(s.startTime.getDate()+s.repeatInterval);
                     s.endTime.setDate(s.endTime.getDate()+s.repeatInterval);
                 }else if(s.repeatCycle == 2){

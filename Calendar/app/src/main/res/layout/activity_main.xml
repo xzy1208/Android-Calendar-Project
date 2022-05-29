@@ -14,75 +14,107 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingLeft="15dp"
-        android:paddingRight="15dp"
-        >
+        android:paddingRight="15dp">
         <ImageButton
             android:id="@+id/search_back"
             android:layout_height="30dp"
             android:layout_width="30dp"
-            android:src="@mipmap/write_direction_left"
-            >
+            android:src="@mipmap/write_direction_left">
         </ImageButton>
+
         <SearchView
             android:id="@+id/search_view"
             android:layout_height="35dp"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
             android:queryHint="@string/search"
             android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
             android:background="@drawable/radius">
-
         </SearchView>
+
+        <ImageButton
+            android:id="@+id/search_del"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@mipmap/delete"/>
     </LinearLayout>
+
     <LinearLayout
         android:id="@+id/title_bar"
         android:layout_height="wrap_content"
         android:layout_width="match_parent">
         <include layout="@layout/top_title"/>
     </LinearLayout>
-    <TabHost
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".MainActivity"
-        android:id="@android:id/tabhost"
-        android:layout_marginTop="50dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-
-            <TabWidget
-                android:id="@android:id/tabs"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingLeft="50dp"
-                android:paddingRight="50dp"
-                android:paddingTop="15dp"
-                />
-
-            <FrameLayout
-                android:id="@android:id/tabcontent"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                >
-                <LinearLayout
-                    android:id="@+id/main_month_view"
-                    android:layout_height="wrap_content"
-                    android:layout_width="wrap_content">
-                    <include layout="@layout/month_viewpager"/>
-                </LinearLayout>
-                <LinearLayout
-                    android:id="@+id/main_week_view"
-                    android:layout_height="wrap_content"
-                    android:layout_width="wrap_content">
-                    <include layout="@layout/week_viewpager"/>
-                </LinearLayout>
-            </FrameLayout>
-
-        </LinearLayout>
-    </TabHost>
 
     <LinearLayout
+        android:id="@+id/tabHost_LL"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="50dp">
+        <TabHost
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context=".MainActivity"
+            android:id="@android:id/tabhost">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <TabWidget
+                    android:id="@android:id/tabs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="50dp"
+                    android:paddingRight="50dp"
+                    android:paddingTop="15dp"
+                    />
+
+                <FrameLayout
+                    android:id="@android:id/tabcontent"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    >
+                    <LinearLayout
+                        android:id="@+id/main_month_view"
+                        android:layout_height="wrap_content"
+                        android:layout_width="wrap_content">
+                        <include layout="@layout/month_viewpager"/>
+                    </LinearLayout>
+                    <LinearLayout
+                        android:id="@+id/main_week_view"
+                        android:layout_height="wrap_content"
+                        android:layout_width="wrap_content">
+                        <include layout="@layout/week_viewpager"/>
+                    </LinearLayout>
+                </FrameLayout>
+
+            </LinearLayout>
+        </TabHost>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/search_listView_LL"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="50dp"
+        android:visibility="gone">
+
+        <ListView
+            android:id="@+id/search_listView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:divider="#00000000"
+            android:dividerHeight="10sp"
+            android:padding="10dp">
+        </ListView>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/floatMenu_LL"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -115,6 +147,46 @@
             app:fabSize="mini"
             app:borderWidth="0dp"
             app:rippleColor="#cccccc" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/menu_del"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_margin="20dp"
+        android:layout_alignParentBottom="true"
+        android:gravity="center_vertical"
+        android:background="@drawable/shape_corner_all_white"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/cancel_del_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="取消"
+            android:textSize="15sp"
+            android:layout_weight="1"
+            android:background="#00000000"/>
+
+        <Button
+            android:id="@+id/finish_del_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="删除"
+            android:textSize="15sp"
+            android:layout_weight="1"
+            android:background="#00000000"/>
+
+        <Button
+            android:id="@+id/check_all_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="全选"
+            android:textSize="15sp"
+            android:layout_weight="1"
+            android:background="#00000000"/>
 
     </LinearLayout>
 

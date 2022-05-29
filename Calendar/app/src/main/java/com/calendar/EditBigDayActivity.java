@@ -109,8 +109,11 @@ public class EditBigDayActivity extends Activity {
                 }
                 Log.e("remindTime",remindTime.getTime()+"");
 
-                if(date.getTime() - new Timestamp(System.currentTimeMillis()).getTime() >= 0){
-                    type = 1;//倒数
+                // 倒数
+                if(date.getTime() - new Timestamp(System.currentTimeMillis()).getTime() >= 0){ // 未来的时间 （不重复：时间到变正数）
+                    type = 1;
+                }else if(bigDay_repeatCycle_num != 0){// 过去的时间+重复
+                    type = 1;
                 }
 
                 Log.e("repeatCycle2",bigDay_repeatCycle_num+"");

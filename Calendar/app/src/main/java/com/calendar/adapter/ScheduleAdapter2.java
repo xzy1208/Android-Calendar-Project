@@ -1,10 +1,16 @@
 package com.calendar.adapter;
 
+import android.app.Activity;
+import android.content.Context;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.CheckBox;
 import android.widget.TextView;
 
+import com.calendar.MainActivity;
 import com.calendar.R;
 import com.calendar.bean.SimpleDate;
 
@@ -19,10 +25,23 @@ import java.util.List;
 
 public class ScheduleAdapter2 extends BaseAdapter{
 
+    private Context mContext;
     private List<SimpleDate> mList;
+    private LayoutInflater mInflater;
+    private int type;
 
-    public ScheduleAdapter2(List<SimpleDate> mList){
+    public ScheduleAdapter2(Context mContext, List<SimpleDate> mList){
+        this.mContext = mContext;
         this.mList = mList;
+        mInflater = LayoutInflater.from(this.mContext);
+        type = 0;
+    }
+
+    public ScheduleAdapter2(Context mContext, List<SimpleDate> mList ,int type){
+        this.mContext = mContext;
+        this.mList = mList;
+        mInflater = LayoutInflater.from(this.mContext);
+        this.type = type;
     }
 
     @Override
@@ -44,9 +63,10 @@ public class ScheduleAdapter2 extends BaseAdapter{
     public View getView(int position, View convertView, ViewGroup viewGroup) {
         ScheduleAdapter2.ViewHolder holder = null;
         if(convertView == null){
-            convertView = View.inflate(viewGroup.getContext(), R.layout.schedule_item_item, null);
+            convertView = mInflater.inflate(R.layout.schedule_item_item, null);
             holder = new ScheduleAdapter2.ViewHolder();
             holder.schedule_item_id = (TextView)convertView.findViewById(R.id.schedule_item_id);
+            holder.schedule_item_delCB = (CheckBox)convertView.findViewById(R.id.schedule_item_delCB);
             holder.schedule_item_startTime = (TextView)convertView.findViewById(R.id.schedule_item_startTime);
             holder.schedule_item_endTime = (TextView) convertView.findViewById(R.id.schedule_item_endTime);
             holder.schedule_item_title = (TextView) convertView.findViewById(R.id.schedule_item_title);
@@ -61,6 +81,7 @@ public class ScheduleAdapter2 extends BaseAdapter{
         final Timestamp startTime = simpleDate.startTime;
         final Timestamp endTime = simpleDate.endTime;
         final String title = simpleDate.title;
+        final boolean isChecked = simpleDate.isChecked;
 
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
@@ -91,11 +112,31 @@ public class ScheduleAdapter2 extends BaseAdapter{
         holder.schedule_item_title.setText(title);
         holder.schedule_item_id.setText(id+"");
 
+        // 显示删除复选框
+        if(this.type == 1){
+            holder.schedule_item_delCB.setVisibility(View.VISIBLE);
+        }else{
+            holder.schedule_item_delCB.setVisibility(View.GONE);
+        }
+
+        holder.schedule_item_delCB.setChecked(simpleDate.isChecked);
+        holder.schedule_item_delCB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (simpleDate.isChecked) {
+                    simpleDate.isChecked = false;
+                } else {
+                    simpleDate.isChecked = true;
+                }
+            }
+        });
+
         return convertView;
     }
 
     class ViewHolder {
         public TextView schedule_item_id;
+        public CheckBox schedule_item_delCB;
         public TextView schedule_item_startTime;
         public TextView schedule_item_endTime;
         public TextView schedule_item_title;

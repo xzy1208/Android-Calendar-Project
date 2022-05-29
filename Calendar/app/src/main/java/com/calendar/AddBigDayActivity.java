@@ -216,8 +216,16 @@ public class AddBigDayActivity extends Activity {
                     }
                     Log.e("remindTime",remindTime.getTime()+"");
 
-                    if(date.getTime() - new Timestamp(System.currentTimeMillis()).getTime() >= 0){
-                        type = 1;//倒数
+                    // 倒数
+                    Timestamp t = new Timestamp(System.currentTimeMillis());
+                    t.setHours(0);
+                    t.setMinutes(0);
+                    t.setSeconds(0);
+                    t.setNanos(0);
+                    if(date.getTime() - t.getTime() >= 0){ // 未来的时间 （不重复：时间到变正数）
+                        type = 1;
+                    }else if(bigDay_repeatCycle_num != 0){// 过去的时间+重复
+                        type = 1;
                     }
 
                     BigDay bigDay = new BigDay(title,date,bigDay_repeatInterval_num,bigDay_repeatCycle_num,remindTime,type,supplement);

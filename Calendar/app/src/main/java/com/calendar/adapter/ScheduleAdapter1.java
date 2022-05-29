@@ -12,6 +12,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.calendar.LookScheduleActivity;
+import com.calendar.MainActivity;
 import com.calendar.R;
 import com.calendar.bean.ScheduleDate;
 import com.calendar.bean.SimpleDate;
@@ -30,11 +31,20 @@ public class ScheduleAdapter1 extends BaseAdapter{
     private Context mContext;
     private List<ScheduleDate> mList;
     private LayoutInflater mInflater;
+    private int type;
 
     public ScheduleAdapter1(Context mContext, List<ScheduleDate> mList){
         this.mContext = mContext;
         this.mList = mList;
         mInflater = LayoutInflater.from(this.mContext);
+        type = 0;
+    }
+
+    public ScheduleAdapter1(Context mContext, List<ScheduleDate> mList, int type){
+        this.mContext = mContext;
+        this.mList = mList;
+        mInflater = LayoutInflater.from(this.mContext);
+        this.type = type;
     }
 
     @Override
@@ -76,7 +86,7 @@ public class ScheduleAdapter1 extends BaseAdapter{
         String[] weekDays = {"星期日","星期一","星期二","星期三","星期四","星期五","星期六"};
         holder.schedule_item_date.setText(dateStr+" "+ weekDays[calendar.get(Calendar.DAY_OF_WEEK)-1]);
 
-        holder.schedule_item_ListView.setAdapter(new ScheduleAdapter2(simpleDateList));
+        holder.schedule_item_ListView.setAdapter(new ScheduleAdapter2(mContext, simpleDateList, type));
         holder.schedule_item_ListView.setOnItemClickListener(new MyOnItemClickListener());
 
         return convertView;

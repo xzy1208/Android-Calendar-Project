@@ -79,9 +79,27 @@ public class ClockService extends Service {
         if(bigDayList != null){
             for(int i=0;i<bigDayList.size();i++){
                 BigDay bigDay = bigDayList.get(i);
-                if(bigDay.remindTime.getTime() > c.getTimeInMillis()){
-                    RemindTask task = new RemindTask(bigDay);
-                    tasks.add(task);
+                if(bigDay.remindTime.getTime() > 0){// 有开启提醒
+                    if(bigDay.repeatCycle != 0){// 不重复
+                        if(bigDay.remindTime.getTime() > c.getTimeInMillis()){
+                            RemindTask task = new RemindTask(bigDay);
+                            tasks.add(task);
+                        }
+                    }else{// 重复
+                        while(bigDay.remindTime.getTime() < c.getTimeInMillis()){
+                            if(bigDay.repeatCycle == 1){
+                                bigDay.remindTime.setDate(bigDay.remindTime.getDate()+bigDay.repeatInterval);
+                            }else if(bigDay.repeatCycle == 2){
+                                bigDay.remindTime.setDate(bigDay.remindTime.getDate()+7*bigDay.repeatInterval);
+                            }else if(bigDay.repeatCycle == 3){
+                                bigDay.remindTime.setMonth(bigDay.remindTime.getMonth()+bigDay.repeatInterval);
+                            }else if(bigDay.repeatCycle == 4){
+                                bigDay.remindTime.setYear(bigDay.remindTime.getYear()+bigDay.repeatInterval);
+                            }
+                        }
+                        RemindTask task = new RemindTask(bigDay);
+                        tasks.add(task);
+                    }
                 }
             }
         }
@@ -89,9 +107,27 @@ public class ClockService extends Service {
         if(scheduleList != null){
             for(int i=0;i<scheduleList.size();i++){
                 Schedule schedule = scheduleList.get(i);
-                if(schedule.remindTime.getTime() > c.getTimeInMillis()){
-                    RemindTask task = new RemindTask(schedule);
-                    tasks.add(task);
+                if(schedule.remindTime.getTime() > 0){// 有开启提醒
+                    if(schedule.repeatCycle != 0){// 不重复
+                        if(schedule.remindTime.getTime() > c.getTimeInMillis()){
+                            RemindTask task = new RemindTask(schedule);
+                            tasks.add(task);
+                        }
+                    }else{// 重复
+                        while(schedule.remindTime.getTime() < c.getTimeInMillis()){
+                            if(schedule.repeatCycle == 1){
+                                schedule.remindTime.setDate(schedule.remindTime.getDate()+schedule.repeatInterval);
+                            }else if(schedule.repeatCycle == 2){
+                                schedule.remindTime.setDate(schedule.remindTime.getDate()+7*schedule.repeatInterval);
+                            }else if(schedule.repeatCycle == 3){
+                                schedule.remindTime.setMonth(schedule.remindTime.getMonth()+schedule.repeatInterval);
+                            }else if(schedule.repeatCycle == 4){
+                                schedule.remindTime.setYear(schedule.remindTime.getYear()+schedule.repeatInterval);
+                            }
+                        }
+                        RemindTask task = new RemindTask(schedule);
+                        tasks.add(task);
+                    }
                 }
             }
         }

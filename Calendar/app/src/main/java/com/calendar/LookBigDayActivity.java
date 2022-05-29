@@ -100,6 +100,25 @@ public class LookBigDayActivity extends Activity {
     public void display(){
         BigDay bigDay = db.getOneDataFromBigDay(id).get(0);
 
+        Timestamp t = new Timestamp(System.currentTimeMillis());
+        t.setHours(0);
+        t.setMinutes(0);
+        t.setSeconds(0);
+        t.setNanos(0);
+        if(bigDay.type == 1 && bigDay.repeatCycle != 0){// 重复 修改前端显示date
+            while(bigDay.date.getTime() < t.getTime()){// 一直加重复周期，直到日期大于今天
+                if(bigDay.repeatCycle == 1){
+                    bigDay.date.setDate(bigDay.date.getDate()+bigDay.repeatInterval);
+                }else if(bigDay.repeatCycle == 2){
+                    bigDay.date.setDate(bigDay.date.getDate()+7*bigDay.repeatInterval);
+                }else if(bigDay.repeatCycle == 3){
+                    bigDay.date.setMonth(bigDay.date.getMonth()+bigDay.repeatInterval);
+                }else if(bigDay.repeatCycle == 4){
+                    bigDay.date.setYear(bigDay.date.getYear()+bigDay.repeatInterval);
+                }
+            }
+        }
+
         if(bigDay.type==1){
             look_bigDay_title.setText(bigDay.title+"还有");
             look_bigDay_title.setBackgroundColor(Color.parseColor("#3399cc"));
@@ -108,7 +127,7 @@ public class LookBigDayActivity extends Activity {
             look_bigDay_title.setBackgroundColor(Color.parseColor("#ff6600"));
         }
 
-        long num = Math.abs(bigDay.date.getTime() - new Timestamp(System.currentTimeMillis()).getTime())/(24*60*60*1000);
+        long num = Math.abs(bigDay.date.getTime() - t.getTime())/(24*60*60*1000);
         look_bigDay_num.setText(num+"");
 
         Calendar calendar = Calendar.getInstance();

@@ -13,12 +13,17 @@ import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.SearchView;
 import android.widget.TabHost;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.calendar.adapter.MonthPageAdapter;
+import com.calendar.adapter.ScheduleAdapter1;
 import com.calendar.adapter.WeekPageAdapter;
 import com.calendar.view.DayManager;
 import com.calendar.view.LeftMonthView;
@@ -55,9 +60,21 @@ public class MainActivity extends TabActivity {
     private ImageButton searchBtn;
     private LinearLayout titleBar;
     private LinearLayout searchTitle;
+    private LinearLayout tabHost_LL;
+    private LinearLayout search_listView_LL;
+    private LinearLayout floatMenu_LL;
+    private SearchView searchView;
+    private ListView search_listView;
+    List<ScheduleDate> search_scheduleDateList;
     private static TextView titleSelectText;
 
+    private LinearLayout menu_del;
+    private Button cancel_del_btn;
+    private Button finish_del_btn;
+    private Button check_all_btn;
+
     private ImageButton searchBackBtn;
+    private ImageButton searchDelBtn;
     private MonthView monthView;
     private MonthView leftMonthView;
     private MonthView rightMonthView;
@@ -111,6 +128,7 @@ public class MainActivity extends TabActivity {
 
     private void initView(){
         //悬浮球
+        floatMenu_LL = (LinearLayout)findViewById(R.id.floatMenu_LL);
         floatMenu_add = (FloatingActionButton) findViewById(R.id.floatMenu_add);
         floatMenu_add.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -143,6 +161,8 @@ public class MainActivity extends TabActivity {
         searchTitle=findViewById(R.id.search_title);
         searchTitle.setVisibility(View.GONE);
         searchBackBtn=findViewById(R.id.search_back);
+        searchDelBtn=findViewById(R.id.search_del);
+
         searchBackBtn.getBackground().setAlpha(0);
         searchBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -153,6 +173,13 @@ public class MainActivity extends TabActivity {
                     isSearch=true;
                 }
                 //startActivity(new Intent(MainActivity.this,SearchActivity.class));
+
+                search_scheduleDateList = FindSchedule.scheduleDateList;
+                search_listView.setAdapter(new ScheduleAdapter1(MainActivity.this,search_scheduleDateList));
+                menu_del.setVisibility(View.GONE);
+                search_listView_LL.setVisibility(View.VISIBLE);
+                tabHost_LL.setVisibility(View.GONE);
+                floatMenu_LL.setVisibility(View.GONE);
             }
         });
         searchBackBtn.setOnClickListener(new View.OnClickListener() {
@@ -162,7 +189,117 @@ public class MainActivity extends TabActivity {
                     searchTitle.setVisibility(View.GONE);
                     titleBar.setVisibility(View.VISIBLE);
                     isSearch=false;
+
+                    search_listView_LL.setVisibility(View.GONE);
+                    tabHost_LL.setVisibility(View.VISIBLE);
+                    searchView.setQuery("",true);
+                    menu_del.setVisibility(View.GONE);
+                    floatMenu_LL.setVisibility(View.VISIBLE);
                 }
+            }
+        });
+
+        menu_del = (LinearLayout)findViewById(R.id.menu_del);
+        searchDelBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                search_listView.setAdapter(new ScheduleAdapter1(MainActivity.this,search_scheduleDateList,1));
+                menu_del.setVisibility(View.VISIBLE);
+            }
+        });
+
+        check_all_btn = (Button)findViewById(R.id.check_all_btn);
+        check_all_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(check_all_btn.getText().equals("全选")){
+                    for(int i=0;i<search_scheduleDateList.size();i++){
+                        for(int j=0;j<search_scheduleDateList.get(i).simpleDateList.size();j++){
+                            SimpleDate simpleDate = search_scheduleDateList.get(i).simpleDateList.get(j);
+                            simpleDate.isChecked = true;
+                            search_scheduleDateList.get(i).simpleDateList.set(j,simpleDate);
+                        }
+                    }
+                    check_all_btn.setText("全不选");
+                }else{
+                    for(int i=0;i<search_scheduleDateList.size();i++){
+                        for(int j=0;j<search_scheduleDateList.get(i).simpleDateList.size();j++){
+                            SimpleDate simpleDate = search_scheduleDateList.get(i).simpleDateList.get(j);
+                            simpleDate.isChecked = false;
+                            search_scheduleDateList.get(i).simpleDateList.set(j,simpleDate);
+                        }
+                    }
+                    check_all_btn.setText("全选");
+                }
+                search_listView.setAdapter(new ScheduleAdapter1(MainActivity.this,search_scheduleDateList,1));
+            }
+        });
+
+        cancel_del_btn = (Button)findViewById(R.id.cancel_del_btn);
+        cancel_del_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                search_listView.setAdapter(new ScheduleAdapter1(MainActivity.this,search_scheduleDateList));
+                menu_del.setVisibility(View.GONE);
+            }
+        });
+
+        finish_del_btn = (Button)findViewById(R.id.finish_del_btn);
+        finish_del_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int del_num = 0;
+                for(int i=0;i<search_scheduleDateList.size();i++){
+                    for(int j=0;j<search_scheduleDateList.get(i).simpleDateList.size();j++){
+                        SimpleDate simpleDate = search_scheduleDateList.get(i).simpleDateList.get(j);
+                        if(simpleDate.isChecked){
+                            if(db.getOneDataFromSchedule(simpleDate.id)!=null){
+                                db.deleteOneDataFromSchedule(simpleDate.id);
+                                Log.e("delSchedule",simpleDate.id+"");
+                                del_num++;
+                            }
+                        }
+                    }
+                }
+                Toast.makeText(MainActivity.this,"成功删除"+del_num+"条日程",Toast.LENGTH_SHORT).show();
+
+                // 更新list
+                List<Schedule> scheduleList = db.getAllDataFromSchedule();
+                FindSchedule fs = new FindSchedule(scheduleList);
+                search(searchView.getQuery().toString());
+                search_listView.setAdapter(new ScheduleAdapter1(MainActivity.this,search_scheduleDateList));
+                menu_del.setVisibility(View.GONE);
+            }
+        });
+
+        tabHost_LL = (LinearLayout)findViewById(R.id.tabHost_LL);
+        search_listView_LL = (LinearLayout)findViewById(R.id.search_listView_LL);
+        searchView = (SearchView)findViewById(R.id.search_view);
+        search_listView = (ListView)findViewById(R.id.search_listView);
+
+        search_scheduleDateList = new ArrayList<>();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                //点击软键盘搜索的时候执行
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                //搜索框文本发生改变的时候执行
+                if(s != null && !"".equals(s.trim())){
+                    search(s);
+                } else{
+                    search_scheduleDateList = FindSchedule.scheduleDateList;
+                }
+
+                // 显示查询后日程
+                search_listView.setAdapter(new ScheduleAdapter1(MainActivity.this,search_scheduleDateList));
+                menu_del.setVisibility(View.GONE);
+                Log.e("search schedule",s+search_scheduleDateList.size()+"");
+
+                return false;
             }
         });
 
@@ -484,5 +621,31 @@ public class MainActivity extends TabActivity {
         Uri uri = Uri.parse("content://sms");
         //注册内容观察者
         this.getContentResolver().registerContentObserver(uri, true, smsObserver);
+    }
+
+    public void search(String s){
+        // 全部日程
+        List<ScheduleDate> scheduleDateList = FindSchedule.scheduleDateList;
+        search_scheduleDateList = new ArrayList<>();
+
+        // 处理数据 存储查询的日程
+        if(scheduleDateList != null){
+            // 查询每一天
+            for(int i=0;i<scheduleDateList.size();i++){
+                Timestamp date = scheduleDateList.get(i).date;
+                List<SimpleDate> simpleDateList = new ArrayList<>();
+                // 查询每一个时间段
+                for(int j=0;j<scheduleDateList.get(i).simpleDateList.size();j++){
+                    // 该时间段的日程是否包含搜索串
+                    if(scheduleDateList.get(i).simpleDateList.get(j).title.indexOf(s) != -1){
+                        simpleDateList.add(scheduleDateList.get(i).simpleDateList.get(j));
+                    }
+                }
+                if(simpleDateList != null && simpleDateList.size()!=0){
+                    ScheduleDate scheduleDate = new ScheduleDate(date,simpleDateList);
+                    search_scheduleDateList.add(scheduleDate);
+                }
+            }
+        }
     }
 }
