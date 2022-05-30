@@ -82,6 +82,7 @@ public class MainActivity extends TabActivity {
     boolean isSearch=false;
 
     private ViewPager monthViewPager;
+    private ListView main_month_scheduleListView;
     private List<View> monthViews;
     //private MonthPageAdapter2 monthPageAdapter2;
     private ViewPager weekViewPager;
@@ -104,6 +105,7 @@ public class MainActivity extends TabActivity {
                 {
                     case 1:
                         updateTitle();
+                        updateMonthSchedule();
                         break;
                 }
             }
@@ -311,6 +313,7 @@ public class MainActivity extends TabActivity {
 
         //日历
         monthViewPager = ((ViewPager) findViewById(R.id.month_pager));
+        main_month_scheduleListView = (ListView)findViewById(R.id.main_month_scheduleListView); // 日程
         LayoutInflater inflater = LayoutInflater.from(this);
         monthViews=new ArrayList<View>();
         //添加布局
@@ -477,6 +480,22 @@ public class MainActivity extends TabActivity {
         int year= DayManager.getSelectYear();
         int month=DayManager.getSelectMonth()+1;
         titleSelectText.setText(year+"年"+month+"月");
+    }
+
+    public void updateMonthSchedule(){
+        int year = DayManager.getSelectYear();
+        int month = DayManager.getSelectMonth()+1;
+        int day = DayManager.getSelectDay();
+        Timestamp date = new Timestamp(year-1900,month-1,day,0,0,0,0);
+        List<ScheduleDate> scheduleDate = new ArrayList<>();
+        for(int i=0;i<FindSchedule.scheduleDateList.size();i++){
+            Log.e("FindScheduleDate",FindSchedule.scheduleDateList.get(i).date.getTime()+"");
+            if(date.getTime() == FindSchedule.scheduleDateList.get(i).date.getTime()){
+                scheduleDate.add(FindSchedule.scheduleDateList.get(i));
+                break;
+            }
+        }
+        main_month_scheduleListView.setAdapter(new ScheduleAdapter1(MainActivity.this,scheduleDate));
     }
 
     private void tabPaging(){
