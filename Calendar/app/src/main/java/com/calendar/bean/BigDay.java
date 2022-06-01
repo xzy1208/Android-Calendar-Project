@@ -28,4 +28,14 @@ public class BigDay {
         this.type = type;
         this.supplement = supplement;
     }
+    public BigDay(int id,String title, Timestamp date, int repeatInterval, int repeatCycle, Timestamp remindTime, int type, String supplement){
+        this.id = id;
+        this.title = title;
+        this.date = date;
+        this.repeatInterval = repeatInterval;
+        this.repeatCycle = repeatCycle;
+        this.remindTime = remindTime;
+        this.type = type;
+        this.supplement = supplement;
+    }
 }

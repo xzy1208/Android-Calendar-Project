@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.calendar.bean.BigDay;
+import com.calendar.bean.FindBigDay;
 import com.calendar.db.DBAdapter;
 import com.calendar.dialog.NumberPickerDialog;
 
@@ -231,6 +232,9 @@ public class AddBigDayActivity extends Activity {
                     BigDay bigDay = new BigDay(title,date,bigDay_repeatInterval_num,bigDay_repeatCycle_num,remindTime,type,supplement);
                     db.insertBigDay(bigDay);
                     Log.e("db.insertBigDay","执行一次");
+
+                    // 更新FindBigDay数据
+                    FindBigDay fb = new FindBigDay(db.getAllDataFromBigDay());
 
                     AddBigDayActivity.this.finish();
                 }

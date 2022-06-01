@@ -19,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.calendar.bean.BigDay;
+import com.calendar.bean.FindBigDay;
 import com.calendar.db.DBAdapter;
 import com.calendar.dialog.NumberPickerDialog;
 
@@ -122,10 +123,8 @@ public class EditBigDayActivity extends Activity {
                 db.updateOneDataFromBigDay(id,bigDay);
                 Log.e("db.editBigDay","执行一次");
 
-                //界面更新
-                Message msg = new Message();
-                msg.what = 2;
-                MainActivity.handler.sendMessage(msg);
+                // 更新FindBigDay数据
+                FindBigDay fb = new FindBigDay(db.getAllDataFromBigDay());
 
                 EditBigDayActivity.this.finish();
             }

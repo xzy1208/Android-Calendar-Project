@@ -10,7 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.calendar.adapter.LVAdapater;
+import com.calendar.adapter.LVAdapter;
 import com.calendar.bean.BigDay;
 import com.calendar.db.DBAdapter;
 
@@ -73,7 +73,7 @@ public class BigDayActivity extends Activity {
         if(bigDays == null) return;
 
         bigDays = sort(bigDays);
-        bigDayListView.setAdapter(new LVAdapater(BigDayActivity.this,bigDays));
+        bigDayListView.setAdapter(new LVAdapter(BigDayActivity.this,bigDays));
 
         LinearLayout bigDayFirstLL = (LinearLayout)findViewById(R.id.bigDayFirstLL);
         if(bigDays.size() > 0){

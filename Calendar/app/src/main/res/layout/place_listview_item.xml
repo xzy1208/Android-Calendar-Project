@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="10dp"
+    android:layout_marginRight="10dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="15dp"
+            android:layout_height="15dp"
+            android:background="@mipmap/place"
+            android:layout_margin="5dp"/>
+
+        <TextView
+            android:id="@+id/place_item_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="浙江工业大学计算机楼"
+            android:textStyle="bold"
+            android:textSize="15dp"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="25dp"
+            android:layout_height="25dp" />
+
+        <TextView
+            android:id="@+id/place_item_snippet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="浙江省杭州市西湖区留下街道留和路288号"/>
+
+    </LinearLayout>
+
+</LinearLayout>

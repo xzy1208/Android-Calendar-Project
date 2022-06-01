@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.calendar.adapter.MonthPageAdapter;
 import com.calendar.bean.BigDay;
+import com.calendar.bean.FindBigDay;
 import com.calendar.db.DBAdapter;
 import com.calendar.dialog.DelDialog;
 
@@ -91,6 +92,8 @@ public class LookBigDayActivity extends Activity {
                     @Override
                     public void onConfirmClick() {
                         db.deleteOneDataFromBigDay(id);
+                        // 更新FindBigDay数据
+                        FindBigDay fb = new FindBigDay(db.getAllDataFromBigDay());
                         LookBigDayActivity.this.finish();
                     }
                 });

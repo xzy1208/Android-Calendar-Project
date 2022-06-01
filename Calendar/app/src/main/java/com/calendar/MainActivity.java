@@ -1,18 +1,23 @@
 package com.calendar;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TabActivity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.telephony.SmsManager;
 import android.util.Log;
@@ -35,11 +40,15 @@ import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.calendar.observer.SmsObserver;
 import com.calendar.adapter.DayPageAdapter;
+import com.calendar.adapter.LVAdapter2;
 import com.calendar.adapter.MonthPageAdapter;
 import com.calendar.adapter.PopupAdapter;
 import com.calendar.adapter.ScheduleAdapter1;
 import com.calendar.adapter.WeekPageAdapter;
+import com.calendar.bean.BigDay;
+import com.calendar.bean.FindBigDay;
 import com.calendar.view.CalendarView;
 import com.calendar.view.Day;
 import com.calendar.view.DayManager;
@@ -50,7 +59,6 @@ import com.calendar.view.RightMonthView;
 import com.calendar.view.RightWeekView;
 import com.calendar.view.WeekView;
 
-import com.calendar.observer.SmsObserver;
 import com.calendar.bean.FindSchedule;
 import com.calendar.bean.Schedule;
 import com.calendar.bean.ScheduleDate;
@@ -99,6 +107,7 @@ public class MainActivity extends TabActivity {
 
     private ViewPager monthViewPager;
     private ListView main_month_scheduleListView;
+    private ListView main_month_bigDayListView;
     private List<View> monthViews;
     //private MonthPageAdapter2 monthPageAdapter2;
     private ViewPager weekViewPager;
@@ -118,6 +127,8 @@ public class MainActivity extends TabActivity {
     SmsObserver smsObserver;
     private Handler mHandler;
 
+    public List<BigDay> bigDays;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -125,6 +136,10 @@ public class MainActivity extends TabActivity {
         DayManager.setSelectDate(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH));
         DayManager.setRealDate(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH));
         setContentView(R.layout.activity_main);
+
+        // 申请权限
+        getPermissions();
+
         handler = new Handler(){
             public void handleMessage(Message msg) {
                 //Bundle data = msg.getData();
@@ -162,6 +177,7 @@ public class MainActivity extends TabActivity {
         super.onStart();
 
         setClock();
+        updateTitleAndView();
     }
 
     private void initView(){
@@ -368,6 +384,12 @@ public class MainActivity extends TabActivity {
             FindSchedule fs = new FindSchedule(scheduleList);
         }
 
+        // 查询重要日 存在FindBigDay里 后续可以直接用FindBigDay.allBigDayList拿 增删改后也这样操作修改变量
+        List<BigDay> bigDayList = db.getAllDataFromBigDay();
+        if(bigDayList != null){
+            FindBigDay fb = new FindBigDay(bigDayList);
+        }
+
     }
     public void initCalendar() {
         //日历
@@ -375,6 +397,7 @@ public class MainActivity extends TabActivity {
         LayoutInflater inflater = LayoutInflater.from(this);
         monthViews = new ArrayList<View>();
         main_month_scheduleListView = (ListView)findViewById(R.id.main_month_scheduleListView); // 日程
+        main_month_bigDayListView = (ListView)findViewById(R.id.main_month_bigDayListView);// 重要日
         //添加布局
         monthViews.add(inflater.inflate(R.layout.month_view_left, null));
         monthViews.add(inflater.inflate(R.layout.month_view, null));
@@ -845,6 +868,8 @@ public class MainActivity extends TabActivity {
         int month=DayManager.getSelectMonth()+1;
         titleSelectText.setText(year+"年"+month+"月");
         updateCalendar();
+        updateMonthSchedule();
+        updateMonthBigDay();
     }
 
     public void createMonthScheduleView(){
@@ -1498,9 +1523,81 @@ public class MainActivity extends TabActivity {
         createWeekScheduleView();
         createDayScheduleView();
     }
+
     @Override
     protected void onResume(){
         super.onResume();
         updateCalendar();
+    }
+
+    public void updateMonthSchedule(){
+        int year = DayManager.getSelectYear();
+        int month = DayManager.getSelectMonth()+1;
+        int day = DayManager.getSelectDay();
+        Timestamp date = new Timestamp(year-1900,month-1,day,0,0,0,0);
+        List<ScheduleDate> scheduleDate = new ArrayList<>();
+        for(int i=0;i<FindSchedule.scheduleDateList.size();i++){
+            if(date.getTime() == FindSchedule.scheduleDateList.get(i).date.getTime()){
+                scheduleDate.add(FindSchedule.scheduleDateList.get(i));
+                break;
+            }
+        }
+        main_month_scheduleListView.setAdapter(new ScheduleAdapter1(MainActivity.this,scheduleDate));
+    }
+
+    public void updateMonthBigDay(){
+        int year = DayManager.getSelectYear();
+        int month = DayManager.getSelectMonth()+1;
+        int day = DayManager.getSelectDay();
+        Timestamp date = new Timestamp(year-1900,month-1,day,0,0,0,0);
+        bigDays = new ArrayList<>();
+        Log.e("now",date.getTime()+"");
+        Log.e("allBigDayList.size",FindBigDay.allBigDayList.size()+"");
+        for(int i=0;i<FindBigDay.allBigDayList.size();i++){
+            Log.e("allBigDayList",FindBigDay.allBigDayList.get(i).date.getTime()+"");
+        }
+        for(int i=0;i<FindBigDay.allBigDayList.size();i++){
+            Log.e("findbigday",FindBigDay.allBigDayList.get(i).date.getTime()+"");
+            if(date.getTime() == FindBigDay.allBigDayList.get(i).date.getTime()){
+                bigDays.add(FindBigDay.allBigDayList.get(i));
+            }
+        }
+        Log.e("MainActivity",bigDays.size()+"");
+        main_month_bigDayListView.setAdapter(new LVAdapter2(MainActivity.this,bigDays));
+        main_month_bigDayListView.setOnItemClickListener(new MyOnItemClickListener2());
+    }
+
+    // main_month_bigDayListView点击事件
+    class MyOnItemClickListener2 implements AdapterView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView parent, View view, int position, long id) {
+            BigDay bigDay = bigDays.get(position);
+
+            Intent intent = new Intent();
+            intent.setClass(MainActivity.this, LookBigDayActivity.class);
+            intent.putExtra("id",bigDay.id);
+            startActivity(intent);
+        }
+    }
+
+    private void getPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED
+                    | ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.RECEIVE_SMS) | ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {//是否请求过该权限
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{Manifest.permission.RECEIVE_SMS,
+                                    Manifest.permission.READ_SMS,
+                                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                    Manifest.permission.READ_EXTERNAL_STORAGE}, 10001);
+                } else {//没有则请求获取权限
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{Manifest.permission.RECEIVE_SMS,
+                                    Manifest.permission.READ_SMS,
+                                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                                    Manifest.permission.WRITE_EXTERNAL_STORAGE}, 10001);
+                }
+            }
+        }
     }
 }
