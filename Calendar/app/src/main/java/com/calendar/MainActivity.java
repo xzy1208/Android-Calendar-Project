@@ -1,8 +1,13 @@
 package com.calendar;
 
+import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.app.TabActivity;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -11,20 +16,32 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.ViewPager;
 import android.telephony.SmsManager;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.SearchView;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.calendar.adapter.DayPageAdapter;
 import com.calendar.adapter.MonthPageAdapter;
+import com.calendar.adapter.PopupAdapter;
 import com.calendar.adapter.ScheduleAdapter1;
 import com.calendar.adapter.WeekPageAdapter;
+import com.calendar.view.CalendarView;
+import com.calendar.view.Day;
 import com.calendar.view.DayManager;
 import com.calendar.view.LeftMonthView;
 import com.calendar.view.LeftWeekView;
@@ -33,7 +50,7 @@ import com.calendar.view.RightMonthView;
 import com.calendar.view.RightWeekView;
 import com.calendar.view.WeekView;
 
-import com.calendar.Observer.SmsObserver;
+import com.calendar.observer.SmsObserver;
 import com.calendar.bean.FindSchedule;
 import com.calendar.bean.Schedule;
 import com.calendar.bean.ScheduleDate;
@@ -49,6 +66,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+
+import static com.calendar.adapter.MonthPageAdapter.monthView;
+import static com.calendar.adapter.WeekPageAdapter.weekView;
 
 public class MainActivity extends TabActivity {
 
@@ -75,10 +95,6 @@ public class MainActivity extends TabActivity {
 
     private ImageButton searchBackBtn;
     private ImageButton searchDelBtn;
-    private MonthView monthView;
-    private MonthView leftMonthView;
-    private MonthView rightMonthView;
-    private WeekView weekView;
     boolean isSearch=false;
 
     private ViewPager monthViewPager;
@@ -87,6 +103,14 @@ public class MainActivity extends TabActivity {
     //private MonthPageAdapter2 monthPageAdapter2;
     private ViewPager weekViewPager;
     private List<View> weekViews;
+
+    private ViewPager dayViewPager;
+    private List<View> dayViews;
+
+    DatePickerDialog datePickerDialog;
+
+    ScrollView weekScheduleView;
+    ScrollView dayScheduleView;
 
     public static Handler handler;
 
@@ -97,15 +121,24 @@ public class MainActivity extends TabActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Calendar today = Calendar.getInstance();
+        DayManager.setSelectDate(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH));
+        DayManager.setRealDate(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH));
         setContentView(R.layout.activity_main);
         handler = new Handler(){
             public void handleMessage(Message msg) {
-                Bundle data = msg.getData();
+                //Bundle data = msg.getData();
                 switch (msg.what)
                 {
+                    //点击切换日期
                     case 1:
-                        updateTitle();
-                        updateMonthSchedule();
+                        updateTitleAndView();
+                        break;
+                    case 2:
+                        Log.d("!Main","get2");
+                        createMonthScheduleView();
+                        createWeekScheduleView();
+                        createDayScheduleView();
                         break;
                 }
             }
@@ -113,11 +146,14 @@ public class MainActivity extends TabActivity {
 
         db = DBAdapter.setDBAdapter(MainActivity.this);
         db.open();
-
         initView();
-
+        initCalendar();
+        createMonthScheduleView();
+        createWeekScheduleBar();
+        createWeekScheduleView();
+        createDayScheduleBar();
+        createDayScheduleView();
         tabPaging();
-
         sending();
     }
 
@@ -150,21 +186,42 @@ public class MainActivity extends TabActivity {
                 DayManager.setSelectDay(DayManager.getRealDay());
                 Calendar temp=Calendar.getInstance();
                 temp.set(DayManager.getRealYear(),DayManager.getRealMonth(),DayManager.getRealDay());
-                monthView.setCalendar(temp);
-                weekView.setCalendar(temp);
+                updateTitleAndView();
             }
         });
 
         //搜索和标题栏
         titleSelectText=findViewById(R.id.title_select_text);
+        createTitle();
         titleBar=findViewById(R.id.title_bar);
+        datePickerDialog = new DatePickerDialog(MainActivity.this, AlertDialog.THEME_HOLO_LIGHT, new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker datePicker, int i, int i1, int i2) {
+                //int参数分别为年月日
+                DayManager.setSelectYear(i);
+                DayManager.setSelectMonth(i1);
+                DayManager.setSelectDay(i2);
+                monthView.invalidate();
+                weekView.invalidate();
+                DayPageAdapter.dayView.invalidate();
+                updateTitleAndView();
+
+            }
+        }, DayManager.getSelectYear(), DayManager.getSelectMonth(), DayManager.getSelectDay());
+
+        titleBar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                datePickerDialog.show();
+            }
+        });
+
         searchBtn=findViewById(R.id.search_btn);
         searchBtn.getBackground().setAlpha(0);
         searchTitle=findViewById(R.id.search_title);
         searchTitle.setVisibility(View.GONE);
         searchBackBtn=findViewById(R.id.search_back);
         searchDelBtn=findViewById(R.id.search_del);
-
         searchBackBtn.getBackground().setAlpha(0);
         searchBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -311,26 +368,29 @@ public class MainActivity extends TabActivity {
             FindSchedule fs = new FindSchedule(scheduleList);
         }
 
+    }
+    public void initCalendar() {
         //日历
         monthViewPager = ((ViewPager) findViewById(R.id.month_pager));
-        main_month_scheduleListView = (ListView)findViewById(R.id.main_month_scheduleListView); // 日程
         LayoutInflater inflater = LayoutInflater.from(this);
-        monthViews=new ArrayList<View>();
+        monthViews = new ArrayList<View>();
+        main_month_scheduleListView = (ListView)findViewById(R.id.main_month_scheduleListView); // 日程
         //添加布局
-        monthViews.add(inflater.inflate(R.layout.month_view_left,null));
-        monthViews.add(inflater.inflate(R.layout.month_view,null));
-        monthViews.add(inflater.inflate(R.layout.month_view_right,null));
+        monthViews.add(inflater.inflate(R.layout.month_view_left, null));
+        monthViews.add(inflater.inflate(R.layout.month_view, null));
+        monthViews.add(inflater.inflate(R.layout.month_view_right, null));
         /*monthViews.add(inflater.inflate(R.layout.month_view_left2,null));
         monthViews.add(inflater.inflate(R.layout.month_view,null));
         monthViews.add(inflater.inflate(R.layout.month_view_right2,null));
         monthPageAdapter2=new MonthPageAdapter2(this,monthViews);*/
 
-        monthViewPager.setAdapter(new MonthPageAdapter(this,monthViews));
+        monthViewPager.setAdapter(new MonthPageAdapter(this, monthViews));
         // monthViewPager.setAdapter(new MonthPageAdapter2(this,monthViews));
         monthViewPager.setCurrentItem(1);
         monthViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
 
             int currentPosition;
+
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
             }
@@ -339,15 +399,16 @@ public class MainActivity extends TabActivity {
             public void onPageSelected(int position) {
                 currentPosition = position;
             }
+
             //目前主动调用ini会导致left和right刷新两次，产生闪跳
             //可能由于本身viewpage会加载该页两边的页，但是为非动态形式，-->考虑重写ViewPager->改为设置不可见后刷新再设为可见
             @Override
             public void onPageScrollStateChanged(int state) {
                 //TextView leftView=monthViewPager.findViewWithTag(0);
                 //TextView rightView=monthViewPager.findViewWithTag(2);
-                MonthView monthView=monthViewPager.findViewWithTag(1);
-                LeftMonthView leftMonthView=monthViewPager.findViewWithTag(0);
-                RightMonthView rightMonthView=monthViewPager.findViewWithTag(2);
+                MonthView monthView = monthViewPager.findViewWithTag(1);
+                LeftMonthView leftMonthView = monthViewPager.findViewWithTag(0);
+                RightMonthView rightMonthView = monthViewPager.findViewWithTag(2);
 
                 // ViewPager.SCROLL_STATE_IDLE 标识的状态是当前页面完全展现，并且没有动画正在进行中，如果不
                 // 是此状态下执行 setCurrentItem 方法回在首位替换的时候会出现跳动！
@@ -355,9 +416,13 @@ public class MainActivity extends TabActivity {
 
                 // 当视图在第一个时，将页面号设置为图片的最后一张。
                 if (currentPosition == 0) {
-                    DayManager.setSelectMonth(DayManager.getSelectMonth()-1);
-                    monthView.setCalendar(Calendar.MONTH,DayManager.getSelectMonth());
-                    monthViewPager.setCurrentItem(1,false);
+                    Calendar temp = DayManager.getSelectCalendar();
+                    temp.add(Calendar.MONTH, -1);
+                    temp.set(Calendar.DAY_OF_MONTH, 1);
+                    DayManager.setSelectCalendar(temp);
+                    monthView.setCalendar(Calendar.MONTH, DayManager.getSelectMonth());
+                    monthView.invalidate();
+                    monthViewPager.setCurrentItem(1, false);
                     //方案1
                     /*Calendar temp=Calendar.getInstance();
                     temp.set(DayManager.getSelectYear(),DayManager.getSelectMonth(),DayManager.getSelectDay());
@@ -376,20 +441,24 @@ public class MainActivity extends TabActivity {
                     rightView.setText(DayManager.getNextMonth()+1+"月");
                     leftView.setVisibility(View.VISIBLE);
                     rightView.setVisibility(View.VISIBLE);*/
-                    leftMonthView.setVisibility(View.GONE);
-                    rightMonthView.setVisibility(View.GONE);
-                    leftMonthView.invalidate();
-                    rightMonthView.invalidate();
-                    leftMonthView.setVisibility(View.VISIBLE);
-                    rightMonthView.setVisibility(View.VISIBLE);
-                } else if (currentPosition ==2) {
+                    if (leftMonthView != null && rightMonthView != null) {
+                        leftMonthView.setVisibility(View.GONE);
+                        rightMonthView.setVisibility(View.GONE);
+                        leftMonthView.invalidate();
+                        rightMonthView.invalidate();
+                        leftMonthView.setVisibility(View.VISIBLE);
+                        rightMonthView.setVisibility(View.VISIBLE);
+                    }
+                } else if (currentPosition == 2) {
                     // 当视图在最后一个是,将页面号设置为图片的第一张。
-                    DayManager.setSelectMonth(DayManager.getSelectMonth()+1);
+                    Calendar temp = DayManager.getSelectCalendar();
+                    temp.add(Calendar.MONTH, 1);
+                    temp.set(Calendar.DAY_OF_MONTH, 1);
+                    DayManager.setSelectCalendar(temp);
                     //monthView.setCalendar(Calendar.MONTH,DayManager.getSelectMonth());
                     monthView.invalidate();
                     //monthView.setCalendar(Calendar.MONTH,DayManager.getSelectMonth());
-
-                    monthViewPager.setCurrentItem(1,false);
+                    monthViewPager.setCurrentItem(1, false);
                     //leftMonthView.invalidate();
                     //rightMonthView.invalidate();
                     // leftView.setText(DayManager.getSelectMonth()-1+"月");
@@ -401,27 +470,30 @@ public class MainActivity extends TabActivity {
                     rightView.setText(DayManager.getNextMonth()+1+"月");
                     leftView.setVisibility(View.VISIBLE);
                     rightView.setVisibility(View.VISIBLE);*/
-                    leftMonthView.setVisibility(View.GONE);
-                    rightMonthView.setVisibility(View.GONE);
-                    leftMonthView.invalidate();
-                    rightMonthView.invalidate();
-                    leftMonthView.setVisibility(View.VISIBLE);
-                    rightMonthView.setVisibility(View.VISIBLE);
+                    if (leftMonthView != null && rightMonthView != null) {
+                        leftMonthView.setVisibility(View.GONE);
+                        rightMonthView.setVisibility(View.GONE);
+                        leftMonthView.invalidate();
+                        rightMonthView.invalidate();
+                        leftMonthView.setVisibility(View.VISIBLE);
+                        rightMonthView.setVisibility(View.VISIBLE);
+                    }
                 }
-                updateTitle();
+                updateTitleAndView();
             }
         });
-        weekViewPager=findViewById(R.id.week_pager);
-        weekViews=new ArrayList<View>();
+        weekViewPager = findViewById(R.id.week_pager);
+        weekViews = new ArrayList<View>();
         //添加布局
-        weekViews.add(inflater.inflate(R.layout.week_view_left,null));
-        weekViews.add(inflater.inflate(R.layout.week_view,null));
-        weekViews.add(inflater.inflate(R.layout.week_view_right,null));
+        weekViews.add(inflater.inflate(R.layout.week_view_left, null));
+        weekViews.add(inflater.inflate(R.layout.week_view, null));
+        weekViews.add(inflater.inflate(R.layout.week_view_right, null));
 
-        weekViewPager.setAdapter(new WeekPageAdapter(this,weekViews));
+        weekViewPager.setAdapter(new WeekPageAdapter(this, weekViews));
         weekViewPager.setCurrentItem(1);
         weekViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             int currentPosition;
+
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
             }
@@ -430,73 +502,170 @@ public class MainActivity extends TabActivity {
             public void onPageSelected(int position) {
                 currentPosition = position;
             }
+
             @Override
             public void onPageScrollStateChanged(int state) {
 
-                WeekView weekView=weekViewPager.findViewWithTag(1);
-                LeftWeekView leftWeekView=weekViewPager.findViewWithTag(0);
-                RightWeekView rightWeekView=weekViewPager.findViewWithTag(2);
-                Calendar temp=Calendar.getInstance();
-                temp.set(DayManager.getSelectYear(),DayManager.getSelectMonth(),DayManager.getSelectDay());
+                WeekView weekView = weekViewPager.findViewWithTag(1);
+                LeftWeekView leftWeekView = weekViewPager.findViewWithTag(0);
+                RightWeekView rightWeekView = weekViewPager.findViewWithTag(2);
+                Calendar temp = Calendar.getInstance();
+                temp.set(DayManager.getSelectYear(), DayManager.getSelectMonth(), DayManager.getSelectDay());
 
                 if (state != ViewPager.SCROLL_STATE_IDLE) return;
 
                 // 当视图在第一个时，将页面号设置为图片的最后一张。
                 if (currentPosition == 0) {
-                    Log.d("!week", String.valueOf(temp.getTime()));
-                    temp.add(Calendar.DAY_OF_MONTH,-7);
-                    Log.d("!weekafter", String.valueOf(temp.getTime()));
+                    //Log.d("!week", String.valueOf(temp.getTime()));
+                    temp.add(Calendar.DAY_OF_MONTH, -7);
+                    //Log.d("!weekafter", String.valueOf(temp.getTime()));
                     DayManager.setSelectCalendar(temp);
-                    Log.d("!weekafterget", String.valueOf(DayManager.getSelectCalendar().getTime()));
-                    Log.d("!weekIndex", String.valueOf(DayManager.getSelectIndex()));
+                    //Log.d("!weekafterget", String.valueOf(DayManager.getSelectCalendar().getTime()));
+                    //Log.d("!weekIndex", String.valueOf(DayManager.getSelectIndex()));
                     weekView.setCalendar(temp);
                     weekView.invalidate();
-                    weekViewPager.setCurrentItem(1,false);
-                    leftWeekView.setVisibility(View.GONE);
-                    rightWeekView.setVisibility(View.GONE);
-                    leftWeekView.invalidate();
-                    rightWeekView.invalidate();
-                    leftWeekView.setVisibility(View.VISIBLE);
-                    rightWeekView.setVisibility(View.VISIBLE);
-                } else if (currentPosition ==2) {
-                    temp.add(Calendar.DAY_OF_MONTH,+7);
+                    weekViewPager.setCurrentItem(1, false);
+                    if (leftWeekView != null && rightWeekView != null) {
+                        leftWeekView.setVisibility(View.GONE);
+                        rightWeekView.setVisibility(View.GONE);
+                        leftWeekView.invalidate();
+                        rightWeekView.invalidate();
+                        leftWeekView.setVisibility(View.VISIBLE);
+                        rightWeekView.setVisibility(View.VISIBLE);
+                    }
+                } else if (currentPosition == 2) {
+                    temp.add(Calendar.DAY_OF_MONTH, +7);
                     DayManager.setSelectCalendar(temp);
                     weekView.invalidate();
-                    weekViewPager.setCurrentItem(1,false);
-                    leftWeekView.setVisibility(View.GONE);
-                    rightWeekView.setVisibility(View.GONE);
-                    leftWeekView.invalidate();
-                    rightWeekView.invalidate();
-                    leftWeekView.setVisibility(View.VISIBLE);
-                    rightWeekView.setVisibility(View.VISIBLE);
+                    weekViewPager.setCurrentItem(1, false);
+                    if (leftWeekView != null && rightWeekView != null) {
+                        leftWeekView.setVisibility(View.GONE);
+                        rightWeekView.setVisibility(View.GONE);
+                        leftWeekView.invalidate();
+                        rightWeekView.invalidate();
+                        leftWeekView.setVisibility(View.VISIBLE);
+                        rightWeekView.setVisibility(View.VISIBLE);
+                    }
                 }
-                updateTitle();
+                updateCalendar();
             }
         });
+        //日
+        dayViewPager = findViewById(R.id.day_pager);
+        dayViews = new ArrayList<View>();
+        //添加布局
+        dayViews.add(inflater.inflate(R.layout.day_view_left, null));
+        dayViews.add(inflater.inflate(R.layout.day_view, null));
+        dayViews.add(inflater.inflate(R.layout.day_view_right, null));
 
-    }
+        dayViewPager.setAdapter(new DayPageAdapter(this, dayViews));
+        dayViewPager.setCurrentItem(1);
+        dayViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            int currentPosition;
 
-    public static void updateTitle(){
-        int year= DayManager.getSelectYear();
-        int month=DayManager.getSelectMonth()+1;
-        titleSelectText.setText(year+"年"+month+"月");
-    }
-
-    public void updateMonthSchedule(){
-        int year = DayManager.getSelectYear();
-        int month = DayManager.getSelectMonth()+1;
-        int day = DayManager.getSelectDay();
-        Timestamp date = new Timestamp(year-1900,month-1,day,0,0,0,0);
-        List<ScheduleDate> scheduleDate = new ArrayList<>();
-        for(int i=0;i<FindSchedule.scheduleDateList.size();i++){
-            Log.e("FindScheduleDate",FindSchedule.scheduleDateList.get(i).date.getTime()+"");
-            if(date.getTime() == FindSchedule.scheduleDateList.get(i).date.getTime()){
-                scheduleDate.add(FindSchedule.scheduleDateList.get(i));
-                break;
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
             }
-        }
-        main_month_scheduleListView.setAdapter(new ScheduleAdapter1(MainActivity.this,scheduleDate));
+
+            @Override
+            public void onPageSelected(int position) {
+                currentPosition = position;
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+                WeekView dayView = dayViewPager.findViewWithTag(1);
+                LeftWeekView leftWeekDayView = dayViewPager.findViewWithTag(0);
+                RightWeekView rightWeekDayView = dayViewPager.findViewWithTag(2);
+                Calendar temp = Calendar.getInstance();
+                temp.set(DayManager.getSelectYear(), DayManager.getSelectMonth(), DayManager.getSelectDay());
+
+                if (state != ViewPager.SCROLL_STATE_IDLE) return;
+
+                // 当视图在第一个时，将页面号设置为图片的最后一张。
+                if (currentPosition == 0) {
+                    //Log.d("!day", String.valueOf(temp.getTime()));
+                    temp.add(Calendar.DAY_OF_MONTH, -7);
+                    //Log.d("!dayafter", String.valueOf(temp.getTime()));
+                    DayManager.setSelectCalendar(temp);
+                    dayView.setCalendar(temp);
+                    dayView.invalidate();
+                    dayViewPager.setCurrentItem(1, false);
+                    if (leftWeekDayView != null && rightWeekDayView != null) {
+                        leftWeekDayView.setVisibility(View.GONE);
+                        rightWeekDayView.setVisibility(View.GONE);
+                        leftWeekDayView.invalidate();
+                        rightWeekDayView.invalidate();
+                        leftWeekDayView.setVisibility(View.VISIBLE);
+                        rightWeekDayView.setVisibility(View.VISIBLE);
+                    }
+
+                } else if (currentPosition == 2) {
+                    temp.add(Calendar.DAY_OF_MONTH, +7);
+                    DayManager.setSelectCalendar(temp);
+                    dayView.invalidate();
+                    dayViewPager.setCurrentItem(1, false);
+                    if (leftWeekDayView != null && rightWeekDayView != null) {
+                        leftWeekDayView.setVisibility(View.GONE);
+                        rightWeekDayView.setVisibility(View.GONE);
+                        leftWeekDayView.invalidate();
+                        rightWeekDayView.invalidate();
+                        leftWeekDayView.setVisibility(View.VISIBLE);
+                        rightWeekDayView.setVisibility(View.VISIBLE);
+                    }
+                }
+                updateTitleAndView();
+            }
+        });
+        DayPageAdapter.dayView.setOnDrawDays(new CalendarView.OnDrawDays() {
+            @Override
+            public boolean drawDay(Day day, Canvas canvas, Context context, Paint paint) {
+
+                return false;
+            }
+
+            @Override
+            public void drawDayAbove(Day day, Canvas canvas, Context context, Paint paint) {
+                String s[] = day.dateText.split("-");
+                // Log.d("!Day",String.valueOf(DayManager.getSelectDay()));
+                // Log.d("!Day_dateText",day.dateText);
+                //dateText带0
+                if (s.length == 3 && !(s[2].equals(String.valueOf(DayManager.getSelectDay())) || s[2].equals("0" + String.valueOf(DayManager.getSelectDay())))) {
+                    paint.setARGB(60, 80, 130, 255);
+                    paint.setStyle(Paint.Style.FILL);
+                    canvas.drawRect(0, 0, day.width, day.height, paint);
+                    //canvas.draw
+                    //canvas.drawBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.yazi), 20, 20, paint);
+                }
+            }
+        });
+        CalendarView.OnDrawDays otherDays = new CalendarView.OnDrawDays() {
+            @Override
+            public boolean drawDay(Day day, Canvas canvas, Context context, Paint paint) {
+
+                return false;
+            }
+
+            @Override
+            public void drawDayAbove(Day day, Canvas canvas, Context context, Paint paint) {
+                {
+                    String s[] = day.dateText.split("-");
+                    if (s.length == 3) {
+                        paint.setARGB(60, 80, 130, 255);
+                        paint.setStyle(Paint.Style.FILL);
+                        canvas.drawRect(0, 0, day.width, day.height, paint);
+                    }
+                    //canvas.draw
+                    //canvas.drawBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.yazi), 20, 20, paint);
+                }
+            }
+        };
+        DayPageAdapter.lastWeekDayView.setOnDrawDays(otherDays);
+        DayPageAdapter.nextWeekDayView.setOnDrawDays(otherDays);
+
     }
+
 
     private void tabPaging(){
         TabHost tabHost = getTabHost();
@@ -504,19 +673,18 @@ public class MainActivity extends TabActivity {
         // 进入界面时刷新UI：setContent(intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
 
         // tab1 月
-        View tab1 = LayoutInflater.from(this).inflate(R.layout.tab1,null);
+        View tab1 = LayoutInflater.from(this).inflate(R.layout.tab1, null);
         spec = tabHost.newTabSpec("1").setIndicator(tab1).setContent(R.id.main_month_view);//若传递layout必须传递id
         tabHost.addTab(spec);
 
         // tab2 周
-        View tab2 = LayoutInflater.from(this).inflate(R.layout.tab2,null);
+        View tab2 = LayoutInflater.from(this).inflate(R.layout.tab2, null);
         spec = tabHost.newTabSpec("2").setIndicator(tab2).setContent(R.id.main_week_view);
         tabHost.addTab(spec);
 
         // tab3 日
-        View tab3 = LayoutInflater.from(this).inflate(R.layout.tab3,null);
-        Intent intent3 = new Intent().setClass(this, ScheduleActivity.class);// 记得修改 还有布局的content
-        spec = tabHost.newTabSpec("3").setIndicator(tab3).setContent(intent3.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+        View tab3 = LayoutInflater.from(this).inflate(R.layout.tab3, null);
+        spec = tabHost.newTabSpec("3").setIndicator(tab3).setContent(R.id.main_day_view);
         tabHost.addTab(spec);
 
         // tab4 日程
@@ -666,5 +834,673 @@ public class MainActivity extends TabActivity {
                 }
             }
         }
+    }
+    public void createTitle(){
+        int year= DayManager.getSelectYear();
+        int month=DayManager.getSelectMonth()+1;
+        titleSelectText.setText(year+"年"+month+"月");
+    }
+    public void updateTitleAndView(){
+        int year= DayManager.getSelectYear();
+        int month=DayManager.getSelectMonth()+1;
+        titleSelectText.setText(year+"年"+month+"月");
+        updateCalendar();
+    }
+
+    public void createMonthScheduleView(){
+        int year = DayManager.getSelectYear();
+        int month = DayManager.getSelectMonth()+1;
+        int day = DayManager.getSelectDay();
+        Timestamp date = new Timestamp(year-1900,month-1,day,0,0,0,0);
+        List<ScheduleDate> scheduleDate = new ArrayList<>();
+        for(int i=0;i<FindSchedule.scheduleDateList.size();i++){
+            Log.e("FindScheduleDate",FindSchedule.scheduleDateList.get(i).date.getTime()+"");
+            if(date.getTime() == FindSchedule.scheduleDateList.get(i).date.getTime()){
+                scheduleDate.add(FindSchedule.scheduleDateList.get(i));
+                break;
+            }
+        }
+        main_month_scheduleListView.setAdapter(new ScheduleAdapter1(MainActivity.this,scheduleDate));
+    }
+    private void createWeekScheduleBar() {
+        weekScheduleView = findViewById(R.id.week_schedule_view);
+        for (int i = 1; i <= 24; i++) {
+            View view = LayoutInflater.from(this).inflate(R.layout.left_time_view, null);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(80, 180);
+            view.setLayoutParams(params);
+            TextView text = (TextView) view.findViewById(R.id.time_number_text);
+            text.setText(String.valueOf(i));
+            LinearLayout leftViewLayout = (LinearLayout) findViewById(R.id.week_time_left_view_layout);
+            leftViewLayout.addView(view);
+        }
+
+    }
+
+    public void createWeekScheduleView() {
+        weekRemoveView();
+        Log.d("!WeekView", "scheduleDateSize" + FindSchedule.getWeekScheduleDate().size());
+        for (ScheduleDate schedule : FindSchedule.getWeekScheduleDate()) {
+            createWeekTableView(schedule);
+        }
+    }
+
+    private void createWeekTableView(final ScheduleDate schedule) {
+        //每次处理当天日程的视图
+        Log.d("!WeekView", "in week view");
+        final int[] course_bj = {R.drawable.coursetable1, R.drawable.coursetable2,
+                R.drawable.coursetable3, R.drawable.coursetable4, R.drawable.coursetable5,
+                R.drawable.coursetable6, R.drawable.coursetable7, R.drawable.coursetable8,
+                R.drawable.coursetable9, R.drawable.coursetable10};
+        int height = 3;//180/60
+        Timestamp temp = schedule.date;
+        Log.d("!WeekView", "Day" + String.valueOf(temp.getTime()));
+        Calendar date = Calendar.getInstance();
+        date.setTime(temp);
+        // /Calendar date=tsCovertToCal(temp);
+        Log.d("!WeekView", "Calendar" + date.getTime());
+        int dayOfWeek = date.get(Calendar.DAY_OF_WEEK) - 1;
+        RelativeLayout dayView = null;
+        Log.d("!WeekView", "DayofWeek" + String.valueOf(dayOfWeek));
+        List<SimpleDate> simpleDateList = schedule.simpleDateList;
+        final List<SimpleDate> allDayList = new ArrayList<SimpleDate>();
+        List<SimpleDate> daytimeList = new ArrayList<SimpleDate>();
+        final List<List<SimpleDate>> alterList = new ArrayList<List<SimpleDate>>();
+        List<int[]> timeList = new ArrayList<int[]>();//存放时间节点
+
+        //对全天和非全天分类处理
+        for (SimpleDate simpleDate : simpleDateList) {
+            if (simpleDate.type == 0) {
+                allDayList.add(simpleDate);
+            } else {
+                int startTime = simpleDate.startTime.getHours() * 60 + simpleDate.startTime.getMinutes();
+                int endTime = simpleDate.endTime.getHours() * 60 + simpleDate.endTime.getMinutes();
+                if (simpleDate.type == 1) {
+                    endTime = 1440;
+                } else if (simpleDate.type == 2) {
+                    startTime = 0;
+                }else if(startTime==endTime)
+                {
+                    endTime=startTime+5;
+                }
+                if (timeList.size() == 0) {
+                    timeList.add(new int[]{startTime, endTime});
+                    List<SimpleDate> first = new ArrayList<SimpleDate>();
+                    first.add(simpleDate);
+                    alterList.add(first);
+                } else {
+                    for (int i = 0; i < timeList.size(); i++) {
+                        if (startTime >= timeList.get(i)[0] && endTime <= timeList.get(i)[1]) {//包含关系
+                            alterList.get(i).add(simpleDate);
+                        } else if (startTime >= timeList.get(i)[0] && endTime > timeList.get(i)[1]) {//前面包含，后面大于
+                            alterList.get(i).add(simpleDate);
+                            timeList.get(i)[1] = endTime;
+                        } else if (startTime < timeList.get(i)[0] && endTime <= timeList.get(i)[1]) {//前面大于，后面包含
+                            alterList.get(i).add(simpleDate);
+                            timeList.get(i)[0] = startTime;
+                        } else if (startTime < timeList.get(i)[0] && endTime > timeList.get(i)[1]) {//全大于
+                            alterList.get(i).add(simpleDate);
+                            timeList.get(i)[0] = startTime;
+                            timeList.get(i)[1] = endTime;
+                        } else {//时间无交集
+                            timeList.add(new int[]{startTime, endTime});
+                            List<SimpleDate> newOne = new ArrayList<SimpleDate>();
+                            newOne.add(simpleDate);
+                            alterList.add(newOne);
+                        }
+                    }
+                }
+            }
+        }
+        //全天
+        switch (dayOfWeek) {
+            case 0:
+                dayView = (RelativeLayout) findViewById(R.id.week_all_day_0);
+                break;
+            case 1:
+                dayView = (RelativeLayout) findViewById(R.id.week_all_day_1);
+                break;
+            case 2:
+                dayView = (RelativeLayout) findViewById(R.id.week_all_day_2);
+                break;
+            case 3:
+                dayView = (RelativeLayout) findViewById(R.id.week_all_day_3);
+                break;
+            case 4:
+                dayView = (RelativeLayout) findViewById(R.id.week_all_day_4);
+                break;
+            case 5:
+                dayView = (RelativeLayout) findViewById(R.id.week_all_day_5);
+                break;
+            case 6:
+                dayView = (RelativeLayout) findViewById(R.id.week_all_day_6);
+                break;
+        }
+        if (allDayList.size() > 0) {
+            final SimpleDate simpleDate = allDayList.get(0);
+            final View v = LayoutInflater.from(this).inflate(R.layout.schedule_card, null);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
+                    (ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT); //设置布局高度,即跨多少节课
+            v.setLayoutParams(params);
+            TextView text = (TextView) v.findViewById(R.id.schedule_text_view);
+            text.setBackgroundResource(course_bj[(int) (Math.random() * 10)]);
+            if (allDayList.size() > 1) {
+                //待补充，重合情况
+                text.setText(simpleDate.title + " " + "+");
+                v.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        initPopWindow(schedule.date,allDayList);
+                    }
+                });
+            } else {
+                v.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(MainActivity.this, LookScheduleActivity.class);
+                        intent.putExtra("id", simpleDate.id);
+                        startActivity(intent);
+                    }
+                });
+                text.setText(simpleDate.title); //显示日程名
+            }
+            dayView.addView(v);//加载单个日程布局
+
+        }
+        //非全天
+        switch (dayOfWeek) {
+            case 0:
+                dayView = (RelativeLayout) findViewById(R.id.week_0);
+                break;
+            case 1:
+                dayView = (RelativeLayout) findViewById(R.id.week_1);
+                break;
+            case 2:
+                dayView = (RelativeLayout) findViewById(R.id.week_2);
+                break;
+            case 3:
+                dayView = (RelativeLayout) findViewById(R.id.week_3);
+                break;
+            case 4:
+                dayView = (RelativeLayout) findViewById(R.id.week_4);
+                break;
+            case 5:
+                dayView = (RelativeLayout) findViewById(R.id.week_5);
+                break;
+            case 6:
+                dayView = (RelativeLayout) findViewById(R.id.week_6);
+                break;
+        }
+        for (int j = 0; j < timeList.size(); j++) {
+            int[] time = timeList.get(j);
+            SimpleDate simpleDate = alterList.get(j).get(0);
+            final View v = LayoutInflater.from(this).inflate(R.layout.schedule_card, null); //加载单个课程布局
+            v.setY(height * time[0]); //设置开始高度,即第几节课开始
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
+                    (ViewGroup.LayoutParams.MATCH_PARENT, (time[1] - time[0]) * height); //设置布局高度,即跨多少节课
+            v.setLayoutParams(params);
+            TextView text = (TextView) v.findViewById(R.id.schedule_text_view);
+            text.setBackgroundResource(course_bj[(int) (Math.random() * 10)]);
+            if (alterList.get(j).size() > 1) {
+                text.setText(simpleDate.title + "\n\n" + "+");
+                final List<SimpleDate> list=alterList.get(j);
+                v.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        initPopWindow(schedule.date,list);
+                    }
+                });
+            } else {
+                text.setText(simpleDate.title); //显示日程名
+                final int id=simpleDate.id;
+                v.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(MainActivity.this, LookScheduleActivity.class);
+                        intent.putExtra("id", id);
+                        startActivity(intent);
+                    }
+                });
+            }
+            dayView.addView(v);
+        }
+    }
+
+    public void weekRemoveView() {
+        RelativeLayout view = (RelativeLayout) findViewById(R.id.week_0);
+        view.removeAllViews();
+        view = (RelativeLayout) findViewById(R.id.week_1);
+        view.removeAllViews();
+        view = (RelativeLayout) findViewById(R.id.week_2);
+        view.removeAllViews();
+        view = (RelativeLayout) findViewById(R.id.week_3);
+        view.removeAllViews();
+        view = (RelativeLayout) findViewById(R.id.week_4);
+        view.removeAllViews();
+        view = (RelativeLayout) findViewById(R.id.week_5);
+        view.removeAllViews();
+        view = (RelativeLayout) findViewById(R.id.week_6);
+        view.removeAllViews();
+        view = (RelativeLayout) findViewById(R.id.week_all_day_0);
+        view.removeAllViews();
+        view = (RelativeLayout) findViewById(R.id.week_all_day_1);
+        view.removeAllViews();
+        view = (RelativeLayout) findViewById(R.id.week_all_day_2);
+        view.removeAllViews();
+        view = (RelativeLayout) findViewById(R.id.week_all_day_3);
+        view.removeAllViews();
+        view = (RelativeLayout) findViewById(R.id.week_all_day_4);
+        view.removeAllViews();
+        view = (RelativeLayout) findViewById(R.id.week_all_day_5);
+        view.removeAllViews();
+        view = (RelativeLayout) findViewById(R.id.week_all_day_6);
+        view.removeAllViews();
+    }
+
+    private void createDayScheduleBar() {
+        dayScheduleView = findViewById(R.id.day_schedule_view);
+        Log.d("!DayView", "bar");
+        for (int i = 1; i <= 24; i++) {
+            View view = LayoutInflater.from(this).inflate(R.layout.left_time_view, null);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(80, 180);
+            view.setLayoutParams(params);
+            TextView text = (TextView) view.findViewById(R.id.time_number_text);
+            text.setText(String.valueOf(i));
+            LinearLayout leftViewLayout = (LinearLayout) findViewById(R.id.day_time_left_view_layout);
+            leftViewLayout.addView(view);
+        }
+    }
+
+    public void createDayScheduleView() {
+        dayRemoveView();
+        //Log.d("!DayView", "scheduleDateSize" + FindSchedule.getDayScheduleDate().size());
+        for (ScheduleDate schedule : FindSchedule.getDayScheduleDate()) {
+            createDayTableView(schedule);
+        }
+    }
+
+    private void createDayTableView(final ScheduleDate schedule) {
+        //每次处理当天日程的视图
+        Log.d("!DayView", "in week view");
+        final int[] course_bj = {R.drawable.coursetable1, R.drawable.coursetable2,
+                R.drawable.coursetable3, R.drawable.coursetable4, R.drawable.coursetable5,
+                R.drawable.coursetable6, R.drawable.coursetable7, R.drawable.coursetable8,
+                R.drawable.coursetable9, R.drawable.coursetable10};
+        int height = 3;//180/60
+        Log.d("!DayView", "Calendar" + schedule.date.getDate());
+
+        final View[] timeDayColumn = {findViewById(R.id.day_layout0),findViewById(R.id.day_layout1),findViewById(R.id.day_layout2),
+                findViewById(R.id.day_layout3),findViewById(R.id.day_layout4)};
+        final View[] allDayColumn = {findViewById(R.id.day_all_day0),findViewById(R.id.day_all_day1),findViewById(R.id.day_all_day2),
+                findViewById(R.id.day_all_day3),findViewById(R.id.day_all_day4)};
+        List<SimpleDate> simpleDateList = schedule.simpleDateList;
+        //初步分类
+        List<SimpleDate> allDayList = new ArrayList<SimpleDate>();
+        List<SimpleDate> daytimeList = new ArrayList<SimpleDate>();
+        //非全天细分
+        List<dayScheduleOnView> alterList = new ArrayList<dayScheduleOnView>();
+        List<List<int[]>> timeList = new ArrayList<List<int[]>>();//存放每一列的时间节点
+        //对全天和非全天分类处理
+        for (SimpleDate simpleDate : simpleDateList) {
+            if (simpleDate.type == 0) {
+                allDayList.add(simpleDate);
+            } else {
+                int startTime = simpleDate.startTime.getHours() * 60 + simpleDate.startTime.getMinutes();
+                int endTime = simpleDate.endTime.getHours() * 60 + simpleDate.endTime.getMinutes();
+                if (simpleDate.type == 1) {
+                    endTime = 1440;
+                } else if (simpleDate.type == 2) {
+                    startTime = 0;
+                }else if(startTime==endTime)
+                {
+                    endTime=startTime+1;
+                }
+                if (alterList.size() == 0) {
+                    alterList.add(new dayScheduleOnView(0, simpleDate, startTime, endTime));
+                    List<int[]> firstTime = new ArrayList<int[]>();
+                    firstTime.add(new int[]{startTime, endTime});
+                    timeList.add(firstTime);
+                } else {
+                    int i = 0;
+                    int j = 0;
+                    boolean isCover=false;
+                    for (i = 0; i < timeList.size(); i++) {//timeList数量表示当前有几列
+                        List<int[]> list = timeList.get(i);
+                        isCover=false;
+                        for (j = 0; j < list.size(); j++) {
+                            if (!(startTime >= list.get(j)[1] && endTime >= list.get(j)[1] || startTime <= list.get(j)[0] && endTime <= list.get(j)[0])) {//有包含关系
+                                {
+                                    //只要有一个包含就直接开始判断下一列
+                                    isCover=true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (j == list.size()&&isCover==false)//无包含关系，加入该列
+                        {
+                            alterList.add(new dayScheduleOnView(i, simpleDate, startTime, endTime));
+                            timeList.get(i).add(new int[]{startTime, endTime});
+                            break;
+                        }
+                    }
+                    if (i == timeList.size()) {//有包含关系，开新列，若为第五列（4），即合并
+                        if (timeList.size() != 5) {
+                            List<int[]> list = new ArrayList<int[]>();
+                            list.add(new int[]{startTime, endTime});
+                            timeList.add(list);
+                            alterList.add(new dayScheduleOnView(i, simpleDate, startTime, endTime));
+                        } else {
+                            timeList.get(4).add(new int[]{startTime, endTime});
+                            alterList.add(new dayScheduleOnView(4, simpleDate, startTime, endTime));
+                        }
+                    }
+                }
+            }
+        }
+
+        //全天
+        if (allDayList.size() > 0) {
+            int num=5;
+            if(allDayList.size()<5) {
+                num = allDayList.size();
+                for(int i=0;i<num;i++)
+                {
+                    RelativeLayout layout=(RelativeLayout) allDayColumn[i];
+                    SimpleDate simpleDate = allDayList.get(i);
+                    final View v = LayoutInflater.from(this).inflate(R.layout.schedule_card, null);
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
+                            (ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT); //设置布局高度,即跨多少节课
+                    v.setLayoutParams(params);
+                    TextView text = (TextView) v.findViewById(R.id.schedule_text_view);
+                    text.setBackgroundResource(course_bj[(int) (Math.random() * 10)]);
+                    text.setText(simpleDate.title); //显示日程名
+                    final int id=simpleDate.id;
+                    v.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(MainActivity.this, LookScheduleActivity.class);
+                            intent.putExtra("id", id);
+                            startActivity(intent);
+                        }
+                    });
+                    layout.addView(v);
+                }
+                if(num>=0) {
+                    for (int i = num; i < 5; i++) {
+                        RelativeLayout temp = (RelativeLayout) allDayColumn[i];
+                        temp.setVisibility(View.GONE);
+                    }
+                }
+            }else{
+                for(int i=0;i<4;i++)
+                {
+                    RelativeLayout layout=(RelativeLayout) allDayColumn[i];
+                    SimpleDate simpleDate = allDayList.get(i);
+                    final View v = LayoutInflater.from(this).inflate(R.layout.schedule_card, null);
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
+                            (ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT); //设置布局高度,即跨多少节课
+                    v.setLayoutParams(params);
+                    TextView text = (TextView) v.findViewById(R.id.schedule_text_view);
+                    text.setBackgroundResource(course_bj[(int) (Math.random() * 10)]);
+                    text.setText(simpleDate.title); //显示日程名
+                    layout.addView(v);
+                    final int id=simpleDate.id;
+                    v.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(MainActivity.this, LookScheduleActivity.class);
+                            intent.putExtra("id", id);
+                            startActivity(intent);
+                        }
+                    });
+
+                }
+                RelativeLayout layout=(RelativeLayout) allDayColumn[4];
+                SimpleDate simpleDate = allDayList.get(4);
+                final View v = LayoutInflater.from(this).inflate(R.layout.schedule_card, null);
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
+                        (ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT); //设置布局高度,即跨多少节课
+                v.setLayoutParams(params);
+                TextView text = (TextView) v.findViewById(R.id.schedule_text_view);
+                text.setBackgroundResource(course_bj[(int) (Math.random() * 10)]);
+                if (allDayList.size() > 5) {
+                    text.setText(simpleDate.title + " " + "+");
+                    final List<SimpleDate> list=new ArrayList<>();
+                    for(int i=4;i<allDayList.size();i++)
+                    {
+                        list.add(allDayList.get(i));
+                    }
+                    v.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            initPopWindow(schedule.date,list);
+                        }
+                    });
+                } else {
+                    text.setText(simpleDate.title); //显示日程名
+                    final int id=simpleDate.id;
+                    v.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(MainActivity.this, LookScheduleActivity.class);
+                            intent.putExtra("id", id);
+                            startActivity(intent);
+                        }
+                    });
+                }
+                layout.addView(v);//加载单个日程布局
+            }
+        }
+        //非全天
+        if(timeList.size()<5){
+            for (int j = 0; j < timeList.size(); j++) {
+                RelativeLayout layout = (RelativeLayout)timeDayColumn[j];
+                //List<dayScheduleOnView> thisColumn=new ArrayList<dayScheduleOnView>();
+                for (dayScheduleOnView d : alterList) {
+                    if (d.column == j) {
+                        final View v = LayoutInflater.from(this).inflate(R.layout.schedule_card, null); //加载单个课程布局
+                        v.setY(height * d.startTime); //设置开始高度,即第几节课开始
+                        Log.d("!Day",d.startTime+" "+d.endTime);
+                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
+                                (ViewGroup.LayoutParams.MATCH_PARENT, (d.endTime - d.startTime) * height); //设置布局高度,即跨多少节课
+                        v.setLayoutParams(params);
+                        TextView text = (TextView) v.findViewById(R.id.schedule_text_view);
+                        text.setBackgroundResource(course_bj[(int) (Math.random() * 10)]);
+                        text.setText(d.simpleDate.title); //显示日程名
+                        final int id=d.simpleDate.id;
+                        v.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Intent intent = new Intent(MainActivity.this, LookScheduleActivity.class);
+                                intent.putExtra("id", id);
+                                startActivity(intent);
+                            }
+                        });
+                        layout.addView(v);
+                    }
+                }
+
+
+            }
+            RelativeLayout temp;
+            if(timeList.size()-1>=0) {
+                for (int i = timeList.size(); i < 5; i++) {
+                    temp = (RelativeLayout) timeDayColumn[i];
+                    temp.setVisibility(View.GONE);
+                }
+            }
+
+        }else{//==5
+            for (int j = 0; j <5; j++) {
+                RelativeLayout layout = (RelativeLayout) timeDayColumn[j];
+                if (j != 4) {//非最后一列
+                    for (dayScheduleOnView d : alterList) {
+                        if (d.column == j) {
+                            View v = LayoutInflater.from(this).inflate(R.layout.schedule_card, null,false); //加载单个课程布局
+                            v.setY(height * d.startTime); //设置开始高度,即第几节课开始
+                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
+                                    (ViewGroup.LayoutParams.MATCH_PARENT, (d.endTime - d.startTime) * height); //设置布局高度,即跨多少节课
+                            v.setLayoutParams(params);
+                            TextView text = (TextView) v.findViewById(R.id.schedule_text_view);
+                            text.setBackgroundResource(course_bj[(int) (Math.random() * 10)]);
+                            text.setText(d.simpleDate.title); //显示日程名
+                            final int id=d.simpleDate.id;
+                            v.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Intent intent = new Intent(MainActivity.this, LookScheduleActivity.class);
+                                    intent.putExtra("id", id);
+                                    startActivity(intent);
+                                }
+                            });
+                            layout.addView(v);
+
+                        }
+                    }
+                }else {//第五列
+                    int start = 1440;
+                    int end = 0;
+                    for (int[] a : timeList.get(4)) {
+                        if (start >= a[0])
+                            start = a[0];
+                        if (end < a[1])
+                            end = a[1];
+                    }
+                    layout = (RelativeLayout) timeDayColumn[4];
+                    final List<SimpleDate> list=new ArrayList<>();
+                    for (dayScheduleOnView d : alterList) {
+                        if (d.column == 4) {//获取到第一个5列的日程,剩余日程待处理
+                            list.add(d.simpleDate);
+                        }
+                    }
+                    final View v = LayoutInflater.from(this).inflate(R.layout.schedule_card, null); //加载单个课程布局
+                    v.setY(height * start); //设置开始高度,即第几节课开始
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
+                            (ViewGroup.LayoutParams.MATCH_PARENT, (end - start) * height); //设置布局高度,即跨多少节课
+                    v.setLayoutParams(params);
+                    TextView text = (TextView) v.findViewById(R.id.schedule_text_view);
+                    text.setBackgroundResource(course_bj[(int) (Math.random() * 10)]);
+                    if (list.size() > 1) {
+                        text.setText(list.get(0).title+ "\n\n" + "+"); //显示日程名
+                        v.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                initPopWindow(schedule.date,list);
+                            }
+                        });
+                    } else {
+                        text.setText(list.get(0).title); //显示日程名
+                        final int id=list.get(0).id;
+                        v.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Intent intent = new Intent(MainActivity.this, LookScheduleActivity.class);
+                                intent.putExtra("id", id);
+                                startActivity(intent);
+                            }
+                        });
+                    }
+                    layout.addView(v);
+                }
+            }
+        }
+    }
+
+    public void dayRemoveView() {
+        final View[] timeDayColumn = {findViewById(R.id.day_layout0),findViewById(R.id.day_layout1),findViewById(R.id.day_layout2),
+                findViewById(R.id.day_layout3),findViewById(R.id.day_layout4)};
+        final View[] allDayColumn = {findViewById(R.id.day_all_day0),findViewById(R.id.day_all_day1),findViewById(R.id.day_all_day2),
+                findViewById(R.id.day_all_day3),findViewById(R.id.day_all_day4)};
+        RelativeLayout temp;
+        for(int i=0;i<5;i++){
+            temp=(RelativeLayout)timeDayColumn[i];
+            temp.removeAllViews();
+            temp.setVisibility(View.VISIBLE);
+        }
+        for(int i=0;i<5;i++){
+            temp=(RelativeLayout)allDayColumn[i];
+            temp.removeAllViews();
+            temp.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /*public List<dayScheduleOnView> getByColumn(int i){
+
+    }*/
+
+    class dayScheduleOnView {
+        int column = -1;
+        SimpleDate simpleDate;
+        int startTime = -1;
+        int endTime = -1;
+
+        dayScheduleOnView(int column, SimpleDate simpleDate, int st, int et) {
+            this.column = column;
+            this.simpleDate = simpleDate;
+            this.startTime = st;
+            this.endTime = et;
+        }
+    };
+    private void initPopWindow(Timestamp date,List<SimpleDate>list) {
+        View view = LayoutInflater.from(this).inflate(R.layout.popupwindow_view, null, false);
+        ListView listView= view.findViewById(R.id.popup_item_listview);
+        listView.setAdapter(new PopupAdapter(MainActivity.this,list));
+        listView.setOnItemClickListener(new MyOnItemClickListener());
+        //LinearLayout context=(LinearLayout) view.findViewById(R.id.popup_context);
+        //context.addView(itemView);
+        //1.构造一个PopupWindow，参数依次是加载的View，宽高
+        final PopupWindow popWindow = new PopupWindow(view,
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+
+
+        popWindow.setAnimationStyle(R.anim.anim_pop);  //设置加载动画
+
+        //这些为了点击非PopupWindow区域，PopupWindow会消失的，如果没有下面的
+        //代码的话，你会发现，当你把PopupWindow显示出来了，无论你按多少次后退键
+        //PopupWindow并不会关闭，而且退不出程序，加上下述代码可以解决这个问题
+        popWindow.setTouchable(true);
+        popWindow.setTouchInterceptor(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return false;
+                // 这里如果返回true的话，touch事件将被拦截
+                // 拦截后 PopupWindow的onTouchEvent不被调用，这样点击外部区域无法dismiss
+            }
+        });
+        popWindow.setBackgroundDrawable(getDrawable(R.drawable.shape_all_radius_and_border));    //要为popWindow设置一个背景才有效
+
+        View onPut=findViewById(R.id.week_schedule_view);//定位而非在那个位置
+        //设置popupWindow显示的位置，参数依次是参照View，x轴的偏移量，y轴的偏移量
+        popWindow.showAtLocation(onPut, Gravity.CENTER_VERTICAL,25,0);
+
+    }
+
+    public class MyOnItemClickListener implements AdapterView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView parent, View view, int position, long id) {
+            TextView popup_item_id = (TextView)view.findViewById(R.id.popup_item_id);
+
+            Intent intent = new Intent(MainActivity.this, LookScheduleActivity.class);;
+            intent.putExtra("id",Integer.parseInt(popup_item_id.getText().toString()));
+            startActivity(intent);
+        }
+    }
+    public void updateCalendar(){
+        monthView.invalidate();
+        MonthPageAdapter.lastMonthView.invalidate();
+        MonthPageAdapter.nextMonthView.invalidate();
+        weekView.invalidate();
+        WeekPageAdapter.lastWeekView.invalidate();
+        WeekPageAdapter.nextWeekView.invalidate();
+        DayPageAdapter.dayView.invalidate();
+        DayPageAdapter.nextWeekDayView.invalidate();
+        DayPageAdapter.lastWeekDayView.invalidate();
+        createMonthScheduleView();
+        createWeekScheduleView();
+        createDayScheduleView();
+    }
+    @Override
+    protected void onResume(){
+        super.onResume();
+        updateCalendar();
     }
 }

@@ -1,4 +1,4 @@
-package com.calendar.Observer;
+package com.calendar.observer;
 
 import android.content.Context;
 import android.database.ContentObserver;

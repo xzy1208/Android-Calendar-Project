@@ -8,7 +8,6 @@ import android.support.v4.view.PagerAdapter;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
 
 import com.calendar.MainActivity;
 import com.calendar.R;
@@ -28,12 +27,12 @@ import java.util.List;
 public class MonthPageAdapter extends PagerAdapter {
     private Context mContext;
     private List<View> monthViews;
-    private MonthView monthView;
-    private LeftMonthView lastMonthView;
-    private RightMonthView nextMonthView;
+    public static MonthView monthView;
+    public static LeftMonthView lastMonthView;
+    public static RightMonthView nextMonthView;
     private addClickListener listener;
 
-    public MonthPageAdapter(Context context , List<View> list) {
+    public MonthPageAdapter(Context context ,List<View> list) {
         mContext = context;
         monthViews = list;
         monthView=list.get(1).findViewById(R.id.month_view);

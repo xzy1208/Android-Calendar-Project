@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Message;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -120,6 +121,11 @@ public class EditBigDayActivity extends Activity {
                 BigDay bigDay = new BigDay(title,date,bigDay_repeatInterval_num,bigDay_repeatCycle_num,remindTime,type,supplement);
                 db.updateOneDataFromBigDay(id,bigDay);
                 Log.e("db.editBigDay","执行一次");
+
+                //界面更新
+                Message msg = new Message();
+                msg.what = 2;
+                MainActivity.handler.sendMessage(msg);
 
                 EditBigDayActivity.this.finish();
             }

@@ -8,19 +8,19 @@
 
 #### ①前端交互
 
-| 功能                         | 结果或进度                       |
-| ---------------------------- | -------------------------------- |
-| 日历显示模式切换：月、周、日 | 目前完全实现月周的滑动和点击切换 |
-| 月周日不同模式下日程显示     |                                  |
-| 日程搜索                     | done                             |
-| 日程总体显示                 | done                             |
-| 同一时间段多个日程           |                                  |
-| 单个日程详细显示             | done                             |
-| 单个日程编辑界面             | done                             |
-| 倒数日总体显示               | done                             |
-| 跳转到今日                   |                                  |
-| *任务清单总体显示            |                                  |
-| *跳转到某一日期              |                                  |
+| 功能                            | 结果或进度             |
+| ------------------------------- | ---------------------- |
+| 日历显示模式切换：月、周、日    | done                   |
+| 月周日不同模式下日程+重要日显示 | ing 重要日显示还未完成 |
+| 日程搜索                        | done                   |
+| 日程总体显示                    | done                   |
+| 同一时间段多个日程              | done                   |
+| 单个日程详细显示                | done                   |
+| 单个日程编辑界面                | done                   |
+| 倒数日总体显示                  | done                   |
+| 跳转到今日                      | done                   |
+| *任务清单总体显示               |                        |
+| *跳转到某一日期                 | done                   |
 
 
 
@@ -517,3 +517,17 @@ pi = PendingIntent.getService(ClockService.this, 0, intent, PendingIntent.FLAG_U
 ```
 alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pi); // 用set时间不准
 ```
+
+### 7.popupwindow悬浮框
+
+[2.6.1 PopupWindow(悬浮框)的基本使用 | 菜鸟教程 (runoob.com)](https://www.runoob.com/w3cnote/android-tutorial-popupwindow.html)
+
+### 8.ViewPager翻页
+
+[(5条消息) ViewPager 全面总结_淡然一笑、的博客-CSDN博客_viewpager](https://blog.csdn.net/weixin_39251617/article/details/79399592)
+
+[(5条消息) ViewPager 全面总结_淡然一笑、的博客-CSDN博客_viewpager](https://blog.csdn.net/weixin_39251617/article/details/79399592)
+
+### 9.自定义监听器
+
+[(5条消息) Android自定义监听器_猿小帅01的博客-CSDN博客_android自定义监听器](https://blog.csdn.net/qq_44203816/article/details/119415837)

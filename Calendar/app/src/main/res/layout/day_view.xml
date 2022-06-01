@@ -7,7 +7,7 @@
     android:layout_marginLeft="20dp"
     android:layout_marginRight="10dp">
     <com.calendar.view.WeekView
-        android:id="@+id/week_view"
+        android:id="@+id/day_view"
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:layout_marginLeft="10dp"

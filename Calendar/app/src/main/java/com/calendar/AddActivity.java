@@ -20,7 +20,6 @@ public class AddActivity extends TabActivity {
     private Button cancel_add_date;
     private Button finish_add_date;
     private TextView add_title;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,6 +58,9 @@ public class AddActivity extends TabActivity {
                     intent.setAction("addBigDay");
                     sendOrderedBroadcast(intent, null);
                 }
+                /*Message msg = new Message();
+                msg.what = 2;
+                MainActivity.handler.sendMessage(msg);*/
             }
         });
     }

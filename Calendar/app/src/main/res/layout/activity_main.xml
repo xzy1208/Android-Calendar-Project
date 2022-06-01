@@ -93,10 +93,20 @@
                         </ListView>
                     </LinearLayout>
                     <LinearLayout
+                        android:orientation="vertical"
                         android:id="@+id/main_week_view"
                         android:layout_height="wrap_content"
                         android:layout_width="wrap_content">
-                        <include layout="@layout/week_viewpager"/>
+                        <include layout="@layout/week_viewpager" />
+                        <include layout="@layout/schedule_week_view"/>
+                    </LinearLayout>
+                    <LinearLayout
+                        android:id="@+id/main_day_view"
+                        android:orientation="vertical"
+                        android:layout_height="wrap_content"
+                        android:layout_width="wrap_content">
+                        <include layout="@layout/day_viewpager"/>
+                        <include layout="@layout/schedule_day_view"/>
                     </LinearLayout>
                 </FrameLayout>
 

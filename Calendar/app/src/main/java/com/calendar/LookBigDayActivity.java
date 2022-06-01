@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.calendar.adapter.MonthPageAdapter;
 import com.calendar.bean.BigDay;
 import com.calendar.db.DBAdapter;
 import com.calendar.dialog.DelDialog;
@@ -167,4 +168,5 @@ public class LookBigDayActivity extends Activity {
             look_bigDay_remindTime.setText(dateStr);
         }
     }
+
 }

@@ -5,6 +5,7 @@ import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Message;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -150,6 +151,10 @@ public class EditScheduleActivity extends Activity {
 
                 // 更新FindSchedule数据
                 FindSchedule fs = new FindSchedule(db.getAllDataFromSchedule());
+                //界面更新
+                Message msg = new Message();
+                msg.what = 2;
+                MainActivity.handler.sendMessage(msg);
 
                 EditScheduleActivity.this.finish();
             }
