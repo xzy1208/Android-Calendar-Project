@@ -22,13 +22,13 @@ import java.util.List;
  * Created by Gkuma on 2022/6/1.
  */
 
-public class PopupAdapter extends BaseAdapter {
+public class PopupAdapterForSchedule extends BaseAdapter {
 
     private Context mContext;
     private List<SimpleDate> mList;
     private LayoutInflater mInflater;
 
-    public PopupAdapter(Context mContext, List<SimpleDate> mList) {
+    public PopupAdapterForSchedule(Context mContext, List<SimpleDate> mList) {
         this.mContext = mContext;
         this.mList = mList;
         mInflater = LayoutInflater.from(this.mContext);
@@ -52,17 +52,17 @@ public class PopupAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup viewGroup) {
-        PopupViewHolder2 holder = null;
+        PopupViewHolder1 holder = null;
         if (convertView == null) {
-            convertView = mInflater.inflate(R.layout.popup_item, null);
-            holder = new PopupViewHolder2();
+            convertView = mInflater.inflate(R.layout.popup_schedule_item, null);
+            holder = new PopupViewHolder1();
             holder.popup_item_id = (TextView) convertView.findViewById(R.id.popup_item_id);
             holder.popup_item_startTime = (TextView) convertView.findViewById(R.id.popup_item_startTime);
             holder.popup_item_endTime = (TextView) convertView.findViewById(R.id.popup_item_endTime);
             holder.popup_item_title = (TextView) convertView.findViewById(R.id.popup_item_title);
             convertView.setTag(holder);
         } else {
-            holder = (PopupViewHolder2) convertView.getTag();
+            holder = (PopupViewHolder1) convertView.getTag();
         }
 
         final SimpleDate simpleDate = mList.get(position);
@@ -105,7 +105,7 @@ public class PopupAdapter extends BaseAdapter {
         return convertView;
     }
 
-    class PopupViewHolder2 {
+    class PopupViewHolder1 {
         public TextView popup_item_id;
         public TextView popup_item_startTime;
         public TextView popup_item_endTime;

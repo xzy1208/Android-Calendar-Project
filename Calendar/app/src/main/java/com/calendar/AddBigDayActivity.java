@@ -24,6 +24,7 @@ import com.calendar.bean.BigDay;
 import com.calendar.bean.FindBigDay;
 import com.calendar.db.DBAdapter;
 import com.calendar.dialog.NumberPickerDialog;
+import com.calendar.view.DayManager;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -78,7 +79,11 @@ public class AddBigDayActivity extends Activity {
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
-        time = Calendar.getInstance();
+        if(MainActivity.page>=0&&MainActivity.page<=2){
+            time= DayManager.getSelectCalendar();
+        }else {
+            time = Calendar.getInstance();
+        }
         String dateStr = sdf.format(time.getTime());
         bigDay_date.setText(dateStr);
 

@@ -16,7 +16,7 @@
                 android:orientation="vertical"
                 >
 
-                <LinearLayout android:layout_height="30dp"
+                <LinearLayout android:layout_height="50dp"
                     android:layout_width="match_parent"
                     android:background="@drawable/shape_border_bottom"
                     >
@@ -24,11 +24,14 @@
                         android:layout_width="wrap_content"
                         android:text="全\n天"
                         android:textSize="12dp"
-                        android:gravity="center"/>
+                        android:gravity="center"
+                        android:layout_gravity="center_vertical"/>
+
                     <LinearLayout android:layout_height="wrap_content"
-                        android:layout_width="wrap_content"
-                        android:layout_marginLeft="8dp">
-                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_marginLeft="8dp"
+                        android:orientation="horizontal">
+                    <GridLayout
                         android:id="@+id/week_all_day_0"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
@@ -37,47 +40,48 @@
                         android:layout_marginTop="1dp"
                         android:layout_marginBottom="1dp"
                         />
-                    <RelativeLayout
-                        android:id="@+id/week_all_day_1"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:layout_marginTop="1dp"
-                        android:layout_marginBottom="1dp"/>
-                    <RelativeLayout
+                        <GridLayout
+                            android:id="@+id/week_all_day_1"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginTop="1dp"
+                            android:layout_marginBottom="1dp"
+                            />
+                    <GridLayout
                         android:id="@+id/week_all_day_2"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:layout_marginTop="1dp"
-                        android:layout_marginBottom="1dp"/>
-                    <RelativeLayout
+                        android:layout_marginBottom="1dp" />
+                    <GridLayout
                         android:id="@+id/week_all_day_3"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:layout_marginTop="1dp"
-                        android:layout_marginBottom="1dp"/>
-                    <RelativeLayout
+                        android:layout_marginBottom="1dp" />
+                    <GridLayout
                         android:id="@+id/week_all_day_4"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:layout_marginTop="1dp"
-                        android:layout_marginBottom="1dp"/>
-                    <RelativeLayout
+                        android:layout_marginBottom="1dp" />
+                    <GridLayout
                         android:id="@+id/week_all_day_5"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:layout_marginTop="1dp"
-                        android:layout_marginBottom="1dp"/>
-                    <RelativeLayout
+                        android:layout_marginBottom="1dp" />
+                    <GridLayout
                         android:id="@+id/week_all_day_6"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"

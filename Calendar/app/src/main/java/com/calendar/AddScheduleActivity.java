@@ -68,6 +68,7 @@ import com.calendar.bean.Place;
 import com.calendar.bean.Schedule;
 import com.calendar.db.DBAdapter;
 import com.calendar.dialog.NumberPickerDialog;
+import com.calendar.view.DayManager;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -222,11 +223,18 @@ public class AddScheduleActivity extends Activity implements LocationSource, AMa
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
-        startTime = Calendar.getInstance();
+        if(MainActivity.page>=0&&MainActivity.page<=2){
+            startTime= DayManager.getSelectCalendar();
+        }else{
+            startTime = Calendar.getInstance();
+        }
         String dateStr1 = sdf.format(startTime.getTime());
         schedule_start_time.setText(dateStr1);
-
-        endTime = Calendar.getInstance();
+        if(MainActivity.page>=0&&MainActivity.page<=2){
+            endTime= DayManager.getSelectCalendar();
+        }else {
+            endTime = Calendar.getInstance();
+        }
         String dateStr2 = sdf.format(endTime.getTime());
         schedule_end_time.setText(dateStr2);
 

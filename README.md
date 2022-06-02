@@ -8,19 +8,19 @@
 
 #### ①前端交互
 
-| 功能                            | 结果或进度             |
-| ------------------------------- | ---------------------- |
-| 日历显示模式切换：月、周、日    | done                   |
-| 月周日不同模式下日程+重要日显示 | ing 重要日显示还未完成 |
-| 日程搜索                        | done                   |
-| 日程总体显示                    | done                   |
-| 同一时间段多个日程              | done                   |
-| 单个日程详细显示                | done                   |
-| 单个日程编辑界面                | done                   |
-| 倒数日总体显示                  | done                   |
-| 跳转到今日                      | done                   |
-| *任务清单总体显示               |                        |
-| *跳转到某一日期                 | done                   |
+| 功能                            | 结果或进度 |
+| ------------------------------- | ---------- |
+| 日历显示模式切换：月、周、日    | done       |
+| 月周日不同模式下日程+重要日显示 | done       |
+| 日程搜索                        | done       |
+| 日程总体显示                    | done       |
+| 同一时间段多个日程              | done       |
+| 单个日程详细显示                | done       |
+| 单个日程编辑界面                | done       |
+| 倒数日总体显示                  | done       |
+| 跳转到今日                      | done       |
+| *任务清单总体显示               |            |
+| *跳转到某一日期                 | done       |
 
 
 
@@ -535,3 +535,12 @@ alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pi); // 用set时间不准
 ### 10.高德定位
 
  [入门指南-Android 定位SDK|高德地图API (amap.com)](https://lbs.amap.com/api/android-location-sdk/gettingstarted) 
+
+### 11.GridLayout.LayoutParams
+
+1：位置：几行几列的意思 2：合并占几块 3：weight权重（float类型）
+
+```java
+GridLayout.LayoutParams iconParams = new GridLayout.LayoutParams( GridLayout.spec(rowIndex, 1, GridLayout.CENTER)，                 GridLayout.spec(columnStart, 1));
+```
+

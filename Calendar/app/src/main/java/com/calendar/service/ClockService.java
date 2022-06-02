@@ -24,7 +24,7 @@ import java.util.List;
 public class ClockService extends Service {
 
     public static DBAdapter db;
-
+    public Thread clockThread;
     public static AlarmManager alarmManager;
     public static  PendingIntent pi;
 
@@ -34,6 +34,7 @@ public class ClockService extends Service {
 
     @Override
     public void onCreate() {
+        super.onCreate();
         Log.e("ClockService","onCreate");
 
         //this.startService(new Intent(this,ClockService.class));// 通过这句话在第一次进入oncreate方法就开启了单独进程的服务
@@ -45,8 +46,9 @@ public class ClockService extends Service {
 
         db = DBAdapter.setDBAdapter(ClockService.this);
         db.open();
+        clockThread=new Thread(null,addTask(),"clockThread");
+        clockThread.start();
 
-        super.onCreate();
     }
 
     @Override
@@ -68,7 +70,7 @@ public class ClockService extends Service {
         return null;
     }
 
-    public static void addTask(){
+    public static Runnable addTask(){
         tasks = new ArrayList<>();
 
         List<BigDay> bigDayList = db.getAllDataFromBigDay();
@@ -140,6 +142,7 @@ public class ClockService extends Service {
         //Toast.makeText(ClockService.this, hourOfDay+":"+minute, Toast.LENGTH_SHORT).show();
         //Toast.makeText(ClockService.this, "闹钟设置完毕 "+c.get(Calendar.YEAR)+"/"+(c.get(Calendar.MONTH)+1)+"/"+c.get(Calendar.DAY_OF_MONTH)+" "+c.get(Calendar.HOUR_OF_DAY)+":"+c.get(Calendar.MINUTE)+":"+c.get(Calendar.SECOND), Toast.LENGTH_SHORT).show();
 
+        return null;
     }
 
     public static void sort(){

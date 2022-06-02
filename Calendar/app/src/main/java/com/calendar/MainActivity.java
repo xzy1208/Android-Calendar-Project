@@ -4,8 +4,10 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TabActivity;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -14,6 +16,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -29,6 +32,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.GridLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -40,15 +44,23 @@ import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.calendar.observer.SmsObserver;
 import com.calendar.adapter.DayPageAdapter;
 import com.calendar.adapter.LVAdapter2;
 import com.calendar.adapter.MonthPageAdapter;
-import com.calendar.adapter.PopupAdapter;
+import com.calendar.adapter.PopupAdapterForBigDay;
+import com.calendar.adapter.PopupAdapterForSchedule;
 import com.calendar.adapter.ScheduleAdapter1;
 import com.calendar.adapter.WeekPageAdapter;
 import com.calendar.bean.BigDay;
 import com.calendar.bean.FindBigDay;
+import com.calendar.bean.FindSchedule;
+import com.calendar.bean.Schedule;
+import com.calendar.bean.ScheduleDate;
+import com.calendar.bean.SimpleDate;
+import com.calendar.db.DBAdapter;
+import com.calendar.observer.SmsObserver;
+import com.calendar.service.ClockService;
+import com.calendar.service.NotificationService;
 import com.calendar.view.CalendarView;
 import com.calendar.view.Day;
 import com.calendar.view.DayManager;
@@ -58,13 +70,6 @@ import com.calendar.view.MonthView;
 import com.calendar.view.RightMonthView;
 import com.calendar.view.RightWeekView;
 import com.calendar.view.WeekView;
-
-import com.calendar.bean.FindSchedule;
-import com.calendar.bean.Schedule;
-import com.calendar.bean.ScheduleDate;
-import com.calendar.bean.SimpleDate;
-import com.calendar.db.DBAdapter;
-import com.calendar.service.ClockService;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -79,7 +84,7 @@ import static com.calendar.adapter.MonthPageAdapter.monthView;
 import static com.calendar.adapter.WeekPageAdapter.weekView;
 
 public class MainActivity extends TabActivity {
-
+    public static int page=0;//默认第一页
     public DBAdapter db;
 
     private FloatingActionButton floatMenu_add;
@@ -127,7 +132,18 @@ public class MainActivity extends TabActivity {
     SmsObserver smsObserver;
     private Handler mHandler;
 
-    public List<BigDay> bigDays;
+    public List<BigDay> bigDays;//用于点击不同日期，改变显示的倒数/正数数字
+
+    private NotificationService notificationService;
+
+    private boolean isAllowAlert = false;
+    private boolean isAllowNotify = false;
+    final int[] course_bj = {R.drawable.coursetable1, R.drawable.coursetable2,
+            R.drawable.coursetable3, R.drawable.coursetable4, R.drawable.coursetable5,
+            R.drawable.coursetable6, R.drawable.coursetable7, R.drawable.coursetable8,
+            R.drawable.coursetable9, R.drawable.coursetable10};
+    final String[] dayOfWeekArray={"星期天","星期一","星期二","星期三","星期三","星期五","星期六"};
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -150,7 +166,6 @@ public class MainActivity extends TabActivity {
                         updateTitleAndView();
                         break;
                     case 2:
-                        Log.d("!Main","get2");
                         createMonthScheduleView();
                         createWeekScheduleView();
                         createDayScheduleView();
@@ -170,13 +185,30 @@ public class MainActivity extends TabActivity {
         createDayScheduleView();
         tabPaging();
         sending();
+        final Intent serviceIntent = new Intent(this,NotificationService.class);
+        boolean isBind=this.getApplicationContext().bindService(serviceIntent,mConnection,Context.BIND_AUTO_CREATE);
+        if(notificationService!=null){
+            Log.d("!not","t");
+            notificationService.sendSimpleNotify("通知","日程提醒");
+        }else{
+            Log.d("!not","f");
+        }
     }
+    public ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.d("!not","connect");
+            notificationService = ((NotificationService.LocalBinder)service).getService();
+        }
+        @Override public void onServiceDisconnected(ComponentName name) {
+            notificationService = null;
+        }
+    };
 
     @Override
     protected void onStart() {
         super.onStart();
-
-        setClock();
+        //setClock();
         updateTitleAndView();
     }
 
@@ -726,7 +758,7 @@ public class MainActivity extends TabActivity {
         tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener(){
             @Override
             public void onTabChanged(String tabId){
-
+                page = Integer.valueOf(tabId)-1;
                 int tabID = Integer.valueOf(tabId)-1;
                 for (int i = 0; i < getTabWidget().getChildCount(); i++)
                 {
@@ -903,19 +935,93 @@ public class MainActivity extends TabActivity {
 
     public void createWeekScheduleView() {
         weekRemoveView();
+        int[] haveBigday=createWeekBigDayView();
         Log.d("!WeekView", "scheduleDateSize" + FindSchedule.getWeekScheduleDate().size());
         for (ScheduleDate schedule : FindSchedule.getWeekScheduleDate()) {
-            createWeekTableView(schedule);
+            createWeekTableView(schedule,haveBigday);
         }
     }
 
-    private void createWeekTableView(final ScheduleDate schedule) {
+    private int[] createWeekBigDayView() {
+        int[] haveBigDay = {0, 0, 0, 0, 0, 0, 0};
+        final List<List<BigDay>> bigDays = new ArrayList<List<BigDay>>(7);
+        for (int i = 0; i < 7; i++)//初始化
+        {
+            bigDays.add(new ArrayList<BigDay>());
+        }
+        for (BigDay bigDay : FindBigDay.getWeekBigDay()) {
+            Timestamp temp = bigDay.date;
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(temp);
+            int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 1;
+            haveBigDay[dayOfWeek] = 1;
+            bigDays.get(dayOfWeek).add(bigDay);
+        }
+        for (int i=0;i<7;i++) {
+            GridLayout dayView = null;
+            switch (i) {
+                case 0:
+                    dayView = findViewById(R.id.week_all_day_0);
+                    break;
+                case 1:
+                    dayView = findViewById(R.id.week_all_day_1);
+                    break;
+                case 2:
+                    dayView = findViewById(R.id.week_all_day_2);
+                    break;
+                case 3:
+                    dayView = findViewById(R.id.week_all_day_3);
+                    break;
+                case 4:
+                    dayView = findViewById(R.id.week_all_day_4);
+                    break;
+                case 5:
+                    dayView = findViewById(R.id.week_all_day_5);
+                    break;
+                case 6:
+                    dayView = findViewById(R.id.week_all_day_6);
+                    break;
+            }
+            if (bigDays.get(i).size() > 0) {
+                final BigDay bigDay = bigDays.get(i).get(0);
+                final View v = LayoutInflater.from(this).inflate(R.layout.schedule_small_card, null);
+                GridLayout.LayoutParams params = new GridLayout.LayoutParams(
+                        GridLayout.spec(0),
+                        GridLayout.spec(0,1.0f));
+                v.setLayoutParams(params);
+                TextView text = (TextView) v.findViewById(R.id.schedule_text_view);
+                text.setBackgroundResource(course_bj[(int) (Math.random() * 10)]);
+                if (bigDays.get(i).size() > 1) {
+                    text.setText("★" + bigDay.title + " " + "+");
+                    final List<BigDay> list = bigDays.get(i);
+                    v.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            initPopWindowForBigDay(bigDay.date, list);
+                        }
+                    });
+                } else {
+                    v.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(MainActivity.this, LookBigDayActivity.class);
+                            intent.putExtra("id", bigDay.id);
+                            startActivity(intent);
+                        }
+                    });
+                    text.setText("★" + bigDay.title); //显示日程名
+                }
+                dayView.addView(v);//加载单个日程布局
+
+            }
+        }
+
+        return haveBigDay;
+    }
+    private void createWeekTableView(final ScheduleDate schedule,int[] haveBigDay) {
         //每次处理当天日程的视图
         Log.d("!WeekView", "in week view");
-        final int[] course_bj = {R.drawable.coursetable1, R.drawable.coursetable2,
-                R.drawable.coursetable3, R.drawable.coursetable4, R.drawable.coursetable5,
-                R.drawable.coursetable6, R.drawable.coursetable7, R.drawable.coursetable8,
-                R.drawable.coursetable9, R.drawable.coursetable10};
+
         int height = 3;//180/60
         Timestamp temp = schedule.date;
         Log.d("!WeekView", "Day" + String.valueOf(temp.getTime()));
@@ -925,6 +1031,7 @@ public class MainActivity extends TabActivity {
         Log.d("!WeekView", "Calendar" + date.getTime());
         int dayOfWeek = date.get(Calendar.DAY_OF_WEEK) - 1;
         RelativeLayout dayView = null;
+        GridLayout allDayView=null;
         Log.d("!WeekView", "DayofWeek" + String.valueOf(dayOfWeek));
         List<SimpleDate> simpleDateList = schedule.simpleDateList;
         final List<SimpleDate> allDayList = new ArrayList<SimpleDate>();
@@ -943,9 +1050,8 @@ public class MainActivity extends TabActivity {
                     endTime = 1440;
                 } else if (simpleDate.type == 2) {
                     startTime = 0;
-                }else if(startTime==endTime)
-                {
-                    endTime=startTime+5;
+                } else if (startTime == endTime) {
+                    endTime = startTime + 5;
                 }
                 if (timeList.size() == 0) {
                     timeList.add(new int[]{startTime, endTime});
@@ -979,119 +1085,163 @@ public class MainActivity extends TabActivity {
         //全天
         switch (dayOfWeek) {
             case 0:
-                dayView = (RelativeLayout) findViewById(R.id.week_all_day_0);
+                allDayView =  findViewById(R.id.week_all_day_0);
                 break;
             case 1:
-                dayView = (RelativeLayout) findViewById(R.id.week_all_day_1);
+                allDayView = findViewById(R.id.week_all_day_1);
                 break;
             case 2:
-                dayView = (RelativeLayout) findViewById(R.id.week_all_day_2);
+                allDayView =  findViewById(R.id.week_all_day_2);
                 break;
             case 3:
-                dayView = (RelativeLayout) findViewById(R.id.week_all_day_3);
+                allDayView = findViewById(R.id.week_all_day_3);
                 break;
             case 4:
-                dayView = (RelativeLayout) findViewById(R.id.week_all_day_4);
+                allDayView = findViewById(R.id.week_all_day_4);
                 break;
             case 5:
-                dayView = (RelativeLayout) findViewById(R.id.week_all_day_5);
+                allDayView =  findViewById(R.id.week_all_day_5);
                 break;
             case 6:
-                dayView = (RelativeLayout) findViewById(R.id.week_all_day_6);
+                allDayView = findViewById(R.id.week_all_day_6);
                 break;
         }
         if (allDayList.size() > 0) {
             final SimpleDate simpleDate = allDayList.get(0);
-            final View v = LayoutInflater.from(this).inflate(R.layout.schedule_card, null);
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
-                    (ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT); //设置布局高度,即跨多少节课
-            v.setLayoutParams(params);
-            TextView text = (TextView) v.findViewById(R.id.schedule_text_view);
-            text.setBackgroundResource(course_bj[(int) (Math.random() * 10)]);
-            if (allDayList.size() > 1) {
-                //待补充，重合情况
-                text.setText(simpleDate.title + " " + "+");
-                v.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        initPopWindow(schedule.date,allDayList);
-                    }
-                });
-            } else {
-                v.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent(MainActivity.this, LookScheduleActivity.class);
-                        intent.putExtra("id", simpleDate.id);
-                        startActivity(intent);
-                    }
-                });
-                text.setText(simpleDate.title); //显示日程名
-            }
-            dayView.addView(v);//加载单个日程布局
+            final View v1 = LayoutInflater.from(this).inflate(R.layout.schedule_small_card, null);
+            final View v2 = LayoutInflater.from(this).inflate(R.layout.schedule_small_card, null);
+            GridLayout.LayoutParams params1 = new GridLayout.LayoutParams(
+                    GridLayout.spec(0),//位置  weight
+                    GridLayout.spec(0,1.0f));
+            GridLayout.LayoutParams params2 = new GridLayout.LayoutParams(
+                    GridLayout.spec(1),//位置 weight
+                    GridLayout.spec(0,1.0f));
+            v1.setLayoutParams(params1);
+            TextView text1 = (TextView) v1.findViewById(R.id.schedule_text_view);
+            text1.setBackgroundResource(course_bj[(int) (Math.random() * 10)]);
+            v2.setLayoutParams(params2);
+            TextView text2 = (TextView) v2.findViewById(R.id.schedule_text_view);
+            text2.setBackgroundResource(course_bj[(int) (Math.random() * 10)]);
 
-        }
-        //非全天
-        switch (dayOfWeek) {
-            case 0:
-                dayView = (RelativeLayout) findViewById(R.id.week_0);
-                break;
-            case 1:
-                dayView = (RelativeLayout) findViewById(R.id.week_1);
-                break;
-            case 2:
-                dayView = (RelativeLayout) findViewById(R.id.week_2);
-                break;
-            case 3:
-                dayView = (RelativeLayout) findViewById(R.id.week_3);
-                break;
-            case 4:
-                dayView = (RelativeLayout) findViewById(R.id.week_4);
-                break;
-            case 5:
-                dayView = (RelativeLayout) findViewById(R.id.week_5);
-                break;
-            case 6:
-                dayView = (RelativeLayout) findViewById(R.id.week_6);
-                break;
-        }
-        for (int j = 0; j < timeList.size(); j++) {
-            int[] time = timeList.get(j);
-            SimpleDate simpleDate = alterList.get(j).get(0);
-            final View v = LayoutInflater.from(this).inflate(R.layout.schedule_card, null); //加载单个课程布局
-            v.setY(height * time[0]); //设置开始高度,即第几节课开始
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
-                    (ViewGroup.LayoutParams.MATCH_PARENT, (time[1] - time[0]) * height); //设置布局高度,即跨多少节课
-            v.setLayoutParams(params);
-            TextView text = (TextView) v.findViewById(R.id.schedule_text_view);
-            text.setBackgroundResource(course_bj[(int) (Math.random() * 10)]);
-            if (alterList.get(j).size() > 1) {
-                text.setText(simpleDate.title + "\n\n" + "+");
-                final List<SimpleDate> list=alterList.get(j);
-                v.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        initPopWindow(schedule.date,list);
+            if (haveBigDay[dayOfWeek] == 1) {//已有一个重要日
+                if (allDayList.size() > 1) {
+                    text2.setText(simpleDate.title + " " + "+");
+                    v2.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            initPopWindowForSchedule(schedule.date, allDayList);
+                        }
+                    });
+                } else {
+                    text2.setText(simpleDate.title); //显示日程名
+                    v2.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v1) {
+                            Intent intent = new Intent(MainActivity.this, LookScheduleActivity.class);
+                            intent.putExtra("id", simpleDate.id);
+                            startActivity(intent);
+                        }
+                    });
+
+                }
+                allDayView.addView(v2);//加载单个日程布局
+            } else {//没有重要日，则显示两个模块的日程
+                    text1.setText(simpleDate.title);
+                    v1.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v1) {
+                            Intent intent = new Intent(MainActivity.this, LookScheduleActivity.class);
+                            intent.putExtra("id", simpleDate.id);
+                            startActivity(intent);
+                        }
+                    });
+                allDayView.addView(v1);
+                    if (allDayList.size() > 2) {
+                        text2.setText(allDayList.get(1).title + " " + "+");
+                        allDayList.remove(0);//去掉第一个，因为已经显示
+                        v2.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                initPopWindowForSchedule(schedule.date, allDayList);
+                            }
+                        });
+                        allDayView.addView(v2);
+                    } else if(allDayList.size()==2){
+                        text2.setText(allDayList.get(1).title);
+                        v2.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v1) {
+                                Intent intent = new Intent(MainActivity.this, LookScheduleActivity.class);
+                                intent.putExtra("id", allDayList.get(1).id);
+                                startActivity(intent);
+                            }
+                        });
+                        allDayView.addView(v2);
                     }
-                });
-            } else {
-                text.setText(simpleDate.title); //显示日程名
-                final int id=simpleDate.id;
-                v.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent(MainActivity.this, LookScheduleActivity.class);
-                        intent.putExtra("id", id);
-                        startActivity(intent);
-                    }
-                });
+                }
             }
-            dayView.addView(v);
+            //非全天
+            switch (dayOfWeek) {
+                case 0:
+                    dayView = (RelativeLayout) findViewById(R.id.week_0);
+                    break;
+                case 1:
+                    dayView = (RelativeLayout) findViewById(R.id.week_1);
+                    break;
+                case 2:
+                    dayView = (RelativeLayout) findViewById(R.id.week_2);
+                    break;
+                case 3:
+                    dayView = (RelativeLayout) findViewById(R.id.week_3);
+                    break;
+                case 4:
+                    dayView = (RelativeLayout) findViewById(R.id.week_4);
+                    break;
+                case 5:
+                    dayView = (RelativeLayout) findViewById(R.id.week_5);
+                    break;
+                case 6:
+                    dayView = (RelativeLayout) findViewById(R.id.week_6);
+                    break;
+            }
+            for (int j = 0; j < timeList.size(); j++) {
+                int[] time = timeList.get(j);
+                SimpleDate simpleDate = alterList.get(j).get(0);
+                final View v = LayoutInflater.from(this).inflate(R.layout.schedule_card, null); //加载单个课程布局
+                v.setY(height * time[0]); //设置开始高度,即第几节课开始
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
+                        (ViewGroup.LayoutParams.MATCH_PARENT, (time[1] - time[0]) * height); //设置布局高度,即跨多少节课
+                v.setLayoutParams(params);
+                TextView text = (TextView) v.findViewById(R.id.schedule_text_view);
+                text.setBackgroundResource(course_bj[(int) (Math.random() * 10)]);
+                if (alterList.get(j).size() > 1) {
+                    text.setText(simpleDate.title + "\n\n" + "+");
+                    final List<SimpleDate> list = alterList.get(j);
+                    v.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            initPopWindowForSchedule(schedule.date, list);
+                        }
+                    });
+                } else {
+                    text.setText(simpleDate.title); //显示日程名
+                    final int id = simpleDate.id;
+                    v.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(MainActivity.this, LookScheduleActivity.class);
+                            intent.putExtra("id", id);
+                            startActivity(intent);
+                        }
+                    });
+                }
+                dayView.addView(v);
+            }
         }
-    }
 
     public void weekRemoveView() {
         RelativeLayout view = (RelativeLayout) findViewById(R.id.week_0);
+        GridLayout view2=null;
         view.removeAllViews();
         view = (RelativeLayout) findViewById(R.id.week_1);
         view.removeAllViews();
@@ -1105,20 +1255,20 @@ public class MainActivity extends TabActivity {
         view.removeAllViews();
         view = (RelativeLayout) findViewById(R.id.week_6);
         view.removeAllViews();
-        view = (RelativeLayout) findViewById(R.id.week_all_day_0);
-        view.removeAllViews();
-        view = (RelativeLayout) findViewById(R.id.week_all_day_1);
-        view.removeAllViews();
-        view = (RelativeLayout) findViewById(R.id.week_all_day_2);
-        view.removeAllViews();
-        view = (RelativeLayout) findViewById(R.id.week_all_day_3);
-        view.removeAllViews();
-        view = (RelativeLayout) findViewById(R.id.week_all_day_4);
-        view.removeAllViews();
-        view = (RelativeLayout) findViewById(R.id.week_all_day_5);
-        view.removeAllViews();
-        view = (RelativeLayout) findViewById(R.id.week_all_day_6);
-        view.removeAllViews();
+        view2= findViewById(R.id.week_all_day_0);
+        view2.removeAllViews();
+        view2 =  findViewById(R.id.week_all_day_1);
+        view2.removeAllViews();
+        view2 =  findViewById(R.id.week_all_day_2);
+        view2.removeAllViews();
+        view2 =  findViewById(R.id.week_all_day_3);
+        view2.removeAllViews();
+        view2 =  findViewById(R.id.week_all_day_4);
+        view2.removeAllViews();
+        view2 =  findViewById(R.id.week_all_day_5);
+        view2.removeAllViews();
+        view2 =  findViewById(R.id.week_all_day_6);
+        view2.removeAllViews();
     }
 
     private void createDayScheduleBar() {
@@ -1136,23 +1286,95 @@ public class MainActivity extends TabActivity {
     }
 
     public void createDayScheduleView() {
+        final View[] allDayColumn = {findViewById(R.id.day_all_day0),findViewById(R.id.day_all_day1),findViewById(R.id.day_all_day2),
+                findViewById(R.id.day_all_day3),findViewById(R.id.day_all_day4)};
         dayRemoveView();
+        int count=createDayBigDayView();
         //Log.d("!DayView", "scheduleDateSize" + FindSchedule.getDayScheduleDate().size());
-        for (ScheduleDate schedule : FindSchedule.getDayScheduleDate()) {
-            createDayTableView(schedule);
+        if(FindSchedule.getDayScheduleDate().size()!=0) {
+            createDayTableView(FindSchedule.getDayScheduleDate().get(0), count);
+        }else {
+            for (int i = count; i < 5; i++) {
+                RelativeLayout temp = (RelativeLayout) allDayColumn[i];
+                temp.setVisibility(View.GONE);
+            }
         }
+
     }
 
-    private void createDayTableView(final ScheduleDate schedule) {
-        //每次处理当天日程的视图
-        Log.d("!DayView", "in week view");
-        final int[] course_bj = {R.drawable.coursetable1, R.drawable.coursetable2,
-                R.drawable.coursetable3, R.drawable.coursetable4, R.drawable.coursetable5,
-                R.drawable.coursetable6, R.drawable.coursetable7, R.drawable.coursetable8,
-                R.drawable.coursetable9, R.drawable.coursetable10};
-        int height = 3;//180/60
-        Log.d("!DayView", "Calendar" + schedule.date.getDate());
+    public int createDayBigDayView() {
+        Log.d("!Day","inDaybigday");
+        final View[] allDayColumn = {findViewById(R.id.day_all_day0),findViewById(R.id.day_all_day1),findViewById(R.id.day_all_day2),
+                findViewById(R.id.day_all_day3),findViewById(R.id.day_all_day4)};
+        int count = 0;
+        RelativeLayout layout = null;
+        List<BigDay> bigDays = FindBigDay.getTodayBigDay();
+        if (bigDays.size() > 0) {
+            BigDay bigDay = FindBigDay.getTodayBigDay().get(0);
+            layout = (RelativeLayout) allDayColumn[count];
+            final View v = LayoutInflater.from(this).inflate(R.layout.schedule_card, null);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
+                    (ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT); //设置布局高度,即跨多少节课
+            v.setLayoutParams(params);
+            TextView text = (TextView) v.findViewById(R.id.schedule_text_view);
+            text.setBackgroundResource(course_bj[(int) (Math.random() * 10)]);
+            text.setText("★" + bigDay.title); //显示日程名
+            final int id = bigDay.id;
+            v.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(MainActivity.this, LookBigDayActivity.class);
+                    intent.putExtra("id", id);
+                    startActivity(intent);
+                }
+            });
+            layout.addView(v);
+            count++;
+            if (bigDays.size() > 1) {
+                bigDay = FindBigDay.getTodayBigDay().get(1);
+                layout = (RelativeLayout) allDayColumn[count];
+                final View v1 = LayoutInflater.from(this).inflate(R.layout.schedule_card, null);
+                v1.setLayoutParams(params);
+                TextView text1 = (TextView) v1.findViewById(R.id.schedule_text_view);
+                text1.setBackgroundResource(course_bj[(int) (Math.random() * 10)]);
+                if (bigDays.size() == 2) {
+                    text1.setText("★" + bigDay.title); //显示日程名
+                    final int id1 = bigDay.id;
+                    v1.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(MainActivity.this, LookBigDayActivity.class);
+                            intent.putExtra("id", id);
+                            startActivity(intent);
+                        }
+                    });
 
+                } else {
+                    text1.setText("★" + bigDay.title + " +"); //显示日程名
+                    final int id1 = bigDay.id;
+                    final List<BigDay>list=bigDays;
+                    list.remove(0);
+                    list.remove(1);
+                    v1.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            initPopWindowForBigDay(list.get(0).date,list);
+                        }
+                    });
+                }
+                layout.addView(v1);
+                count++;
+            }
+            Log.d("!Day","count");
+        }
+        return count;
+    }
+    private void createDayTableView(final ScheduleDate schedule, int count) {
+        int maxnum=5-count;
+        //每次处理当天日程的视图
+        //Log.d("!DayView", "in week view");
+        int height = 3;//180/60
+        //Log.d("!DayView", "Calendar" + schedule.date.getDate());
         final View[] timeDayColumn = {findViewById(R.id.day_layout0),findViewById(R.id.day_layout1),findViewById(R.id.day_layout2),
                 findViewById(R.id.day_layout3),findViewById(R.id.day_layout4)};
         final View[] allDayColumn = {findViewById(R.id.day_all_day0),findViewById(R.id.day_all_day1),findViewById(R.id.day_all_day2),
@@ -1202,20 +1424,20 @@ public class MainActivity extends TabActivity {
                         }
                         if (j == list.size()&&isCover==false)//无包含关系，加入该列
                         {
-                            alterList.add(new dayScheduleOnView(i, simpleDate, startTime, endTime));
+                            alterList.add(new dayScheduleOnView(count+i+1, simpleDate, startTime, endTime));
                             timeList.get(i).add(new int[]{startTime, endTime});
                             break;
                         }
                     }
                     if (i == timeList.size()) {//有包含关系，开新列，若为第五列（4），即合并
-                        if (timeList.size() != 5) {
+                        if (timeList.size() != maxnum) {
                             List<int[]> list = new ArrayList<int[]>();
                             list.add(new int[]{startTime, endTime});
                             timeList.add(list);
                             alterList.add(new dayScheduleOnView(i, simpleDate, startTime, endTime));
                         } else {
-                            timeList.get(4).add(new int[]{startTime, endTime});
-                            alterList.add(new dayScheduleOnView(4, simpleDate, startTime, endTime));
+                            timeList.get(maxnum-1).add(new int[]{startTime, endTime});
+                            alterList.add(new dayScheduleOnView(maxnum-1, simpleDate, startTime, endTime));
                         }
                     }
                 }
@@ -1223,13 +1445,14 @@ public class MainActivity extends TabActivity {
         }
 
         //全天
+        Log.d("!Day","size??"+allDayList.size());
         if (allDayList.size() > 0) {
-            int num=5;
-            if(allDayList.size()<5) {
+            int num=0;
+            if(allDayList.size()<maxnum) {//不足五列
                 num = allDayList.size();
                 for(int i=0;i<num;i++)
                 {
-                    RelativeLayout layout=(RelativeLayout) allDayColumn[i];
+                    RelativeLayout layout=(RelativeLayout) allDayColumn[count+i];
                     SimpleDate simpleDate = allDayList.get(i);
                     final View v = LayoutInflater.from(this).inflate(R.layout.schedule_card, null);
                     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
@@ -1249,16 +1472,16 @@ public class MainActivity extends TabActivity {
                     });
                     layout.addView(v);
                 }
-                if(num>=0) {
-                    for (int i = num; i < 5; i++) {
+                if(num+count>=0) {//隐藏多余行
+                    for (int i = num+count; i < 5; i++) {
                         RelativeLayout temp = (RelativeLayout) allDayColumn[i];
                         temp.setVisibility(View.GONE);
                     }
                 }
-            }else{
-                for(int i=0;i<4;i++)
+            }else{//满5列
+                for(int i=0;i<maxnum-1;i++)//前几列
                 {
-                    RelativeLayout layout=(RelativeLayout) allDayColumn[i];
+                    RelativeLayout layout=(RelativeLayout) allDayColumn[count+i];
                     SimpleDate simpleDate = allDayList.get(i);
                     final View v = LayoutInflater.from(this).inflate(R.layout.schedule_card, null);
                     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
@@ -1279,25 +1502,26 @@ public class MainActivity extends TabActivity {
                     });
 
                 }
+                //最后一列
                 RelativeLayout layout=(RelativeLayout) allDayColumn[4];
-                SimpleDate simpleDate = allDayList.get(4);
+                SimpleDate simpleDate = allDayList.get(maxnum-1);
                 final View v = LayoutInflater.from(this).inflate(R.layout.schedule_card, null);
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
                         (ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT); //设置布局高度,即跨多少节课
                 v.setLayoutParams(params);
                 TextView text = (TextView) v.findViewById(R.id.schedule_text_view);
                 text.setBackgroundResource(course_bj[(int) (Math.random() * 10)]);
-                if (allDayList.size() > 5) {
+                if (allDayList.size() > maxnum) {
                     text.setText(simpleDate.title + " " + "+");
                     final List<SimpleDate> list=new ArrayList<>();
-                    for(int i=4;i<allDayList.size();i++)
+                    for(int i=maxnum-1;i<allDayList.size();i++)
                     {
                         list.add(allDayList.get(i));
                     }
                     v.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            initPopWindow(schedule.date,list);
+                            initPopWindowForSchedule(schedule.date,list);
                         }
                     });
                 } else {
@@ -1409,7 +1633,7 @@ public class MainActivity extends TabActivity {
                         v.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
-                                initPopWindow(schedule.date,list);
+                                initPopWindowForSchedule(schedule.date,list);
                             }
                         });
                     } else {
@@ -1465,13 +1689,50 @@ public class MainActivity extends TabActivity {
             this.endTime = et;
         }
     };
-    private void initPopWindow(Timestamp date,List<SimpleDate>list) {
+    //日程悬浮框
+    private void initPopWindowForSchedule(Timestamp date,List<SimpleDate>list) {
         View view = LayoutInflater.from(this).inflate(R.layout.popupwindow_view, null, false);
+        TextView textView=view.findViewById(R.id.popup_item_date);
+        String dateStr=date.getYear()+1900+"年"+(date.getMonth()+1)+"月"+date.getDate()+"日 "+dayOfWeekArray[date.getDay()];
+        textView.setText(dateStr);
         ListView listView= view.findViewById(R.id.popup_item_listview);
-        listView.setAdapter(new PopupAdapter(MainActivity.this,list));
-        listView.setOnItemClickListener(new MyOnItemClickListener());
-        //LinearLayout context=(LinearLayout) view.findViewById(R.id.popup_context);
-        //context.addView(itemView);
+        listView.setAdapter(new PopupAdapterForSchedule(MainActivity.this,list));
+        listView.setOnItemClickListener(new MyOnItemClickListenerForSchedule());
+        //1.构造一个PopupWindow，参数依次是加载的View，宽高
+        final PopupWindow popWindow = new PopupWindow(view,
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+
+
+        popWindow.setAnimationStyle(R.anim.anim_pop);  //设置加载动画
+
+        //这些为了点击非PopupWindow区域，PopupWindow会消失的，如果没有下面的
+        //代码的话，你会发现，当你把PopupWindow显示出来了，无论你按多少次后退键
+        //PopupWindow并不会关闭，而且退不出程序，加上下述代码可以解决这个问题
+        popWindow.setTouchable(true);
+        popWindow.setTouchInterceptor(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return false;
+                // 这里如果返回true的话，touch事件将被拦截
+                // 拦截后 PopupWindow的onTouchEvent不被调用，这样点击外部区域无法dismiss
+            }
+        });
+        popWindow.setBackgroundDrawable(getDrawable(R.drawable.shape_all_radius_and_border));    //要为popWindow设置一个背景才有效
+
+        View onPut=findViewById(R.id.week_schedule_view);//定位而非在那个位置
+        //设置popupWindow显示的位置，参数依次是参照View，x轴的偏移量，y轴的偏移量
+        popWindow.showAtLocation(onPut, Gravity.CENTER_VERTICAL,25,0);
+
+    }
+    //重要日悬浮框
+    private void initPopWindowForBigDay(Timestamp date,List<BigDay>list) {
+        View view = LayoutInflater.from(this).inflate(R.layout.popupwindow_view, null, false);
+        TextView textView=view.findViewById(R.id.popup_item_date);
+        String dateStr=date.getYear()+1900+"年"+(date.getMonth()+1)+"月"+date.getDate()+"日 "+dayOfWeekArray[date.getDay()];
+        textView.setText(dateStr);
+        ListView listView= view.findViewById(R.id.popup_item_listview);
+        listView.setAdapter(new PopupAdapterForBigDay(MainActivity.this,list));
+        listView.setOnItemClickListener(new MyOnItemClickListenerForBigDay());
         //1.构造一个PopupWindow，参数依次是加载的View，宽高
         final PopupWindow popWindow = new PopupWindow(view,
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
@@ -1499,12 +1760,22 @@ public class MainActivity extends TabActivity {
 
     }
 
-    public class MyOnItemClickListener implements AdapterView.OnItemClickListener {
+    public class MyOnItemClickListenerForSchedule implements AdapterView.OnItemClickListener {
         @Override
         public void onItemClick(AdapterView parent, View view, int position, long id) {
             TextView popup_item_id = (TextView)view.findViewById(R.id.popup_item_id);
 
             Intent intent = new Intent(MainActivity.this, LookScheduleActivity.class);;
+            intent.putExtra("id",Integer.parseInt(popup_item_id.getText().toString()));
+            startActivity(intent);
+        }
+    }
+    public class MyOnItemClickListenerForBigDay implements AdapterView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView parent, View view, int position, long id) {
+            TextView popup_item_id = (TextView)view.findViewById(R.id.popup_item_id);
+
+            Intent intent = new Intent(MainActivity.this, LookBigDayActivity.class);;
             intent.putExtra("id",Integer.parseInt(popup_item_id.getText().toString()));
             startActivity(intent);
         }
@@ -1572,7 +1843,6 @@ public class MainActivity extends TabActivity {
         @Override
         public void onItemClick(AdapterView parent, View view, int position, long id) {
             BigDay bigDay = bigDays.get(position);
-
             Intent intent = new Intent();
             intent.setClass(MainActivity.this, LookBigDayActivity.class);
             intent.putExtra("id",bigDay.id);
@@ -1589,13 +1859,18 @@ public class MainActivity extends TabActivity {
                             new String[]{Manifest.permission.RECEIVE_SMS,
                                     Manifest.permission.READ_SMS,
                                     Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                                    Manifest.permission.READ_EXTERNAL_STORAGE}, 10001);
+                                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                                    Manifest.permission.SYSTEM_ALERT_WINDOW,
+                                    Manifest.permission.ACCESS_NOTIFICATION_POLICY,
+                            }, 10001);
                 } else {//没有则请求获取权限
                     ActivityCompat.requestPermissions(this,
                             new String[]{Manifest.permission.RECEIVE_SMS,
                                     Manifest.permission.READ_SMS,
                                     Manifest.permission.READ_EXTERNAL_STORAGE,
-                                    Manifest.permission.WRITE_EXTERNAL_STORAGE}, 10001);
+                                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                    Manifest.permission.SYSTEM_ALERT_WINDOW,
+                                    Manifest.permission.ACCESS_NOTIFICATION_POLICY}, 10001);
                 }
             }
         }

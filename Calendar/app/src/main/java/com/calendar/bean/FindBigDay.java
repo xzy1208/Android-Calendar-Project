@@ -2,6 +2,8 @@ package com.calendar.bean;
 
 import android.util.Log;
 
+import com.calendar.view.DayManager;
+
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -60,5 +62,32 @@ public class FindBigDay {
                 }
             }
         }
+    }
+    public static List<BigDay> getWeekBigDay(){
+        List<BigDay> weekBigDayList=new ArrayList<BigDay>();
+        Calendar temp= DayManager.getSelectCalendar();
+        int dayOfWeek = temp.get(Calendar.DAY_OF_WEEK) - 1;
+        temp.add(Calendar.DAY_OF_MONTH, -dayOfWeek);
+        for(int i=0;i<7;i++){
+            int year=temp.get(Calendar.YEAR);
+            int month=temp.get(Calendar.MONTH);
+            int day=temp.get(Calendar.DAY_OF_MONTH);
+            for(BigDay b:allBigDayList){
+                if (year == (b.date.getYear() + 1900) && month == b.date.getMonth() && day == b.date.getDate()) {
+                    weekBigDayList.add(b);
+                }
+            }
+            temp.add(Calendar.DAY_OF_MONTH,1);
+        }
+        return weekBigDayList;
+    }
+    public static List<BigDay> getTodayBigDay(){
+        List<BigDay> todayBigDayList=new ArrayList<BigDay>();
+            for(BigDay b:getWeekBigDay()){
+                if (DayManager.getSelectYear() == (b.date.getYear() + 1900) && DayManager.getSelectMonth() == b.date.getMonth() && DayManager.getSelectDay() == b.date.getDate()) {
+                    todayBigDayList.add(b);
+                }
+        }
+        return todayBigDayList;
     }
 }
