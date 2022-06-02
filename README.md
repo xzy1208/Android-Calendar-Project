@@ -531,3 +531,7 @@ alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pi); // 用set时间不准
 ### 9.自定义监听器
 
 [(5条消息) Android自定义监听器_猿小帅01的博客-CSDN博客_android自定义监听器](https://blog.csdn.net/qq_44203816/article/details/119415837)
+
+### 10.高德定位
+
+ [入门指南-Android 定位SDK|高德地图API (amap.com)](https://lbs.amap.com/api/android-location-sdk/gettingstarted) 
