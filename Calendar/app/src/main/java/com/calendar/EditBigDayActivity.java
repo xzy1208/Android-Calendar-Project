@@ -146,7 +146,9 @@ public class EditBigDayActivity extends Activity {
         edit_bigDay_date.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Calendar mcalendar = Calendar.getInstance();
+                String text[]=String.valueOf(edit_bigDay_date.getText()).split(" ");
+                String date[]=text[0].split("-");
+                //Calendar mcalendar = Calendar.getInstance();
                 new DatePickerDialog(EditBigDayActivity.this, new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth){
@@ -155,7 +157,7 @@ public class EditBigDayActivity extends Activity {
                         String dateStr = sdf.format(time.getTime());
                         edit_bigDay_date.setText(dateStr);
                     }
-                },mcalendar.get(Calendar.YEAR),mcalendar.get(Calendar.MONTH),mcalendar.get(Calendar.DAY_OF_MONTH)).show();
+                },Integer.parseInt(date[0]),Integer.parseInt(date[1])-1,Integer.parseInt(date[2])).show();
             }
         });
 

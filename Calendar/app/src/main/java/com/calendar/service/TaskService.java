@@ -200,10 +200,10 @@ public class TaskService extends Service {
         }
         builder.setContentIntent(contentIntent)//设置内容的点击意图
                 .setAutoCancel(true)//设置是否允许自动清除
-                .setSmallIcon(R.mipmap.ic_launcher)//设置状态栏里的小图标
+                .setSmallIcon(R.mipmap.calendar)//设置状态栏里的小图标
                 .setTicker("提示消息来啦")//设置状态栏里面的提示文本
                 .setWhen(System.currentTimeMillis())//设置推送时间，格式为"小时：分钟"
-                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))//设置通知栏里面的大图标
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.calendar))//设置通知栏里面的大图标
                 .setContentTitle(title)//设置通知栏里面的标题文本
                 .setContentText(message);//设置通知栏里面的内容文本
         //根据消息构造器创建一个通知对象

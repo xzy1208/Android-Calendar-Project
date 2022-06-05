@@ -153,6 +153,7 @@ public class EditScheduleActivity extends Activity implements LocationSource, AM
         MapsInitializer.updatePrivacyAgree(this,true);
 
         edit_place_listView = findViewById(R.id.edit_place_listView);
+        edit_place_listView.setVisibility(View.GONE);
         edit_place_listView.setOnItemClickListener(new MyOnItemClickListener());
 
         //获取地图控件引用
@@ -319,7 +320,9 @@ public class EditScheduleActivity extends Activity implements LocationSource, AM
         edit_schedule_start_time.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Calendar mcalendar = Calendar.getInstance();
+                String text[]=String.valueOf(edit_schedule_start_time.getText()).split(" ");
+                String date[]=text[0].split("-");
+                //Calendar mcalendar = Calendar.getInstance();
                 new DatePickerDialog(EditScheduleActivity.this, new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth){
@@ -333,7 +336,9 @@ public class EditScheduleActivity extends Activity implements LocationSource, AM
                             String dateStr = sdf.format(startTime.getTime());
                             edit_schedule_start_time.setText(dateStr);
                         }else{
-                            Calendar mcalendar = Calendar.getInstance();
+                            String text[]=String.valueOf(edit_schedule_start_time.getText()).split(" ");
+                            String time[]=text[1].split(":");
+                            //Calendar mcalendar = Calendar.getInstance();
                             new TimePickerDialog(EditScheduleActivity.this, 0,
                                     new TimePickerDialog.OnTimeSetListener() {
                                         @Override
@@ -346,17 +351,19 @@ public class EditScheduleActivity extends Activity implements LocationSource, AM
                                             String dateStr = sdf.format(startTime.getTime());
                                             edit_schedule_start_time.setText(dateStr);
                                         }
-                                    }, mcalendar.get(Calendar.HOUR_OF_DAY), mcalendar.get(Calendar.MINUTE), false).show();
+                                    }, Integer.parseInt(time[0]),Integer.parseInt(time[1]), false).show();
                         }
                     }
-                },mcalendar.get(Calendar.YEAR),mcalendar.get(Calendar.MONTH),mcalendar.get(Calendar.DAY_OF_MONTH)).show();
+                },Integer.parseInt(date[0]),Integer.parseInt(date[1])-1,Integer.parseInt(date[2])).show();
             }
         });
 
         edit_schedule_end_time.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Calendar mcalendar = Calendar.getInstance();
+                String text[]=String.valueOf(edit_schedule_end_time.getText()).split(" ");
+                String date[]=text[0].split("-");
+                //Calendar mcalendar = Calendar.getInstance();
                 new DatePickerDialog(EditScheduleActivity.this, new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth){
@@ -370,7 +377,9 @@ public class EditScheduleActivity extends Activity implements LocationSource, AM
                             String dateStr = sdf.format(endTime.getTime());
                             edit_schedule_end_time.setText(dateStr);
                         }else{
-                            Calendar mcalendar = Calendar.getInstance();
+                            String text[]=String.valueOf(edit_schedule_end_time.getText()).split(" ");
+                            String time[]=text[1].split(":");
+                            //Calendar mcalendar = Calendar.getInstance();
                             new TimePickerDialog(EditScheduleActivity.this, 0,
                                     new TimePickerDialog.OnTimeSetListener() {
                                         @Override
@@ -383,10 +392,10 @@ public class EditScheduleActivity extends Activity implements LocationSource, AM
                                             String dateStr = sdf.format(endTime.getTime());
                                             edit_schedule_end_time.setText(dateStr);
                                         }
-                                    }, mcalendar.get(Calendar.HOUR_OF_DAY), mcalendar.get(Calendar.MINUTE), false).show();
+                                    }, Integer.parseInt(time[0]),Integer.parseInt(time[1]), false).show();
                         }
                     }
-                },mcalendar.get(Calendar.YEAR),mcalendar.get(Calendar.MONTH),mcalendar.get(Calendar.DAY_OF_MONTH)).show();
+                },Integer.parseInt(date[0]),Integer.parseInt(date[1])-1,Integer.parseInt(date[2])).show();
             }
         });
 
@@ -553,7 +562,10 @@ public class EditScheduleActivity extends Activity implements LocationSource, AM
                 //搜索框文本发生改变的时候执行
                 if(s == null || "".equals(s.trim())){
                     placeList = new ArrayList<>();
-                    edit_place_listView.setAdapter(new PlaceAdapter(EditScheduleActivity.this, placeList));
+                    edit_place_listView.setVisibility(View.GONE);
+                    //edit_place_listView.setAdapter(new PlaceAdapter(EditScheduleActivity.this, placeList));
+                }else{
+                    query(s);
                 }
                 return false;
             }
@@ -603,6 +615,11 @@ public class EditScheduleActivity extends Activity implements LocationSource, AM
                                 String snippet = poiResult.getPois().get(i).getProvinceName()+poiResult.getPois().get(i).getCityName()+poiResult.getPois().get(i).getAdName()+poiResult.getPois().get(i).getSnippet();
                                 Place place = new Place(longitude, latitude, title, snippet);
                                 placeList.add(place);
+                            }
+                            if(placeList.size()!=0){
+                                edit_place_listView.setVisibility(View.VISIBLE);
+                            }else{
+                                edit_place_listView.setVisibility(View.GONE);
                             }
                             edit_place_listView.setAdapter(new PlaceAdapter(EditScheduleActivity.this, placeList));
                         }

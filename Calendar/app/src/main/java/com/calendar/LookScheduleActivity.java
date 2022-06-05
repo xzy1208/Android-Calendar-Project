@@ -105,7 +105,7 @@ public class LookScheduleActivity extends Activity {
 
         look_schedule_title.setText(schedule.title);
 
-        if(schedule.place == null || schedule.place.equals("")){
+        if(schedule.place == null || schedule.place.equals("") || schedule.place.equals("选择地点")){
             look_schedule_place.setVisibility(View.GONE);
         }else{
             look_schedule_place.setText(schedule.place);

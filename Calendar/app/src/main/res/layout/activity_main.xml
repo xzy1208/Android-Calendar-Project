@@ -37,7 +37,7 @@
             android:id="@+id/search_del"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:src="@mipmap/delete"/>
+            android:src="@mipmap/white_delete" />
     </LinearLayout>
 
     <LinearLayout

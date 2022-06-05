@@ -344,8 +344,9 @@ public class MainActivity extends TabActivity {
         searchTitle=findViewById(R.id.search_title);
         searchTitle.setVisibility(View.GONE);
         searchBackBtn=findViewById(R.id.search_back);
-        searchDelBtn=findViewById(R.id.search_del);
         searchBackBtn.getBackground().setAlpha(0);
+        searchDelBtn=findViewById(R.id.search_del);
+        searchDelBtn.getBackground().setAlpha(0);
         searchBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

@@ -156,6 +156,7 @@ public class AddScheduleActivity extends Activity implements LocationSource, AMa
         MapsInitializer.updatePrivacyAgree(this,true);
 
         place_listView = findViewById(R.id.place_listView);
+        place_listView.setVisibility(View.GONE);
         place_listView.setOnItemClickListener(new MyOnItemClickListener());
 
         //获取地图控件引用
@@ -281,7 +282,7 @@ public class AddScheduleActivity extends Activity implements LocationSource, AMa
         schedule_end_time.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String text[]=String.valueOf(schedule_start_time.getText()).split(" ");
+                String text[]=String.valueOf(schedule_end_time.getText()).split(" ");
                 String date[]=text[0].split("-");
                 // Calendar mcalendar = Calendar.getInstance();
                 new DatePickerDialog(AddScheduleActivity.this, new DatePickerDialog.OnDateSetListener() {
@@ -508,7 +509,10 @@ public class AddScheduleActivity extends Activity implements LocationSource, AMa
                 //搜索框文本发生改变的时候执行
                 if(s == null || "".equals(s.trim())){
                     placeList = new ArrayList<>();
-                    place_listView.setAdapter(new PlaceAdapter(AddScheduleActivity.this, placeList));
+                    place_listView.setVisibility(View.GONE);
+                    //place_listView.setAdapter(new PlaceAdapter(AddScheduleActivity.this, placeList));
+                }else{
+                    query(s);
                 }
                 return false;
             }
@@ -558,6 +562,11 @@ public class AddScheduleActivity extends Activity implements LocationSource, AMa
                                 String snippet = poiResult.getPois().get(i).getProvinceName()+poiResult.getPois().get(i).getCityName()+poiResult.getPois().get(i).getAdName()+poiResult.getPois().get(i).getSnippet();
                                 Place place = new Place(longitude, latitude, title, snippet);
                                 placeList.add(place);
+                            }
+                            if(placeList.size()!=0){
+                                place_listView.setVisibility(View.VISIBLE);
+                            }else{
+                                place_listView.setVisibility(View.GONE);
                             }
                             place_listView.setAdapter(new PlaceAdapter(AddScheduleActivity.this, placeList));
                         }
