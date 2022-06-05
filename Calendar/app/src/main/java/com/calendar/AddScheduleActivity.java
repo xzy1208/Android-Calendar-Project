@@ -241,7 +241,9 @@ public class AddScheduleActivity extends Activity implements LocationSource, AMa
         schedule_start_time.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Calendar mcalendar = Calendar.getInstance();
+                String text[]=String.valueOf(schedule_start_time.getText()).split(" ");
+                String date[]=text[0].split("-");
+                //Calendar mcalendar = Calendar.getInstance();
                 new DatePickerDialog(AddScheduleActivity.this, new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth){
@@ -255,7 +257,8 @@ public class AddScheduleActivity extends Activity implements LocationSource, AMa
                             String dateStr = sdf.format(startTime.getTime());
                             schedule_start_time.setText(dateStr);
                         }else{
-                            Calendar mcalendar = Calendar.getInstance();
+                            String text[]=String.valueOf(schedule_start_time.getText()).split(" ");
+                            String time[]=text[1].split(":");
                             new TimePickerDialog(AddScheduleActivity.this, 0,
                                     new TimePickerDialog.OnTimeSetListener() {
                                         @Override
@@ -268,17 +271,19 @@ public class AddScheduleActivity extends Activity implements LocationSource, AMa
                                             String dateStr = sdf.format(startTime.getTime());
                                             schedule_start_time.setText(dateStr);
                                         }
-                                    }, mcalendar.get(Calendar.HOUR_OF_DAY), mcalendar.get(Calendar.MINUTE), false).show();
+                                    }, Integer.parseInt(time[0]),Integer.parseInt(time[1]), false).show();
                         }
                     }
-                },mcalendar.get(Calendar.YEAR),mcalendar.get(Calendar.MONTH),mcalendar.get(Calendar.DAY_OF_MONTH)).show();
+                },Integer.parseInt(date[0]),Integer.parseInt(date[1])-1,Integer.parseInt(date[2])).show();
             }
         });
 
         schedule_end_time.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Calendar mcalendar = Calendar.getInstance();
+                String text[]=String.valueOf(schedule_start_time.getText()).split(" ");
+                String date[]=text[0].split("-");
+                // Calendar mcalendar = Calendar.getInstance();
                 new DatePickerDialog(AddScheduleActivity.this, new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth){
@@ -292,7 +297,9 @@ public class AddScheduleActivity extends Activity implements LocationSource, AMa
                             String dateStr = sdf.format(endTime.getTime());
                             schedule_end_time.setText(dateStr);
                         }else{
-                            Calendar mcalendar = Calendar.getInstance();
+                            String text[]=String.valueOf(schedule_start_time.getText()).split(" ");
+                            String time[]=text[1].split(":");
+                            //Calendar mcalendar = Calendar.getInstance();
                             new TimePickerDialog(AddScheduleActivity.this, 0,
                                     new TimePickerDialog.OnTimeSetListener() {
                                         @Override
@@ -305,10 +312,10 @@ public class AddScheduleActivity extends Activity implements LocationSource, AMa
                                             String dateStr = sdf.format(endTime.getTime());
                                             schedule_end_time.setText(dateStr);
                                         }
-                                    }, mcalendar.get(Calendar.HOUR_OF_DAY), mcalendar.get(Calendar.MINUTE), false).show();
+                                    }, Integer.parseInt(time[0]),Integer.parseInt(time[1]), false).show();
                         }
                     }
-                },mcalendar.get(Calendar.YEAR),mcalendar.get(Calendar.MONTH),mcalendar.get(Calendar.DAY_OF_MONTH)).show();
+                },Integer.parseInt(date[0]),Integer.parseInt(date[1])-1,Integer.parseInt(date[2])).show();
             }
         });
 

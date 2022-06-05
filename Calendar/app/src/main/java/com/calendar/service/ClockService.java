@@ -46,8 +46,10 @@ public class ClockService extends Service {
 
         db = DBAdapter.setDBAdapter(ClockService.this);
         db.open();
-        clockThread=new Thread(null,addTask(),"clockThread");
-        clockThread.start();
+       // clockThread=new Thread(null,addTask(),"clockThread");
+
+        /*Log.d("!clock",Process.myPid()+" "+Process.myTid());
+        Toast.makeText(this, Process.myPid()+" "+Process.myTid(),Toast.LENGTH_LONG);*/
 
     }
 
@@ -56,8 +58,9 @@ public class ClockService extends Service {
         Log.e("ClockService","onStartCommand");
         // 加任务
         addTask();
+        //clockThread.start();
 
-        return START_STICKY; // service异常关闭后可重启
+        return START_STICKY;
     }
 
     @Override
@@ -70,15 +73,13 @@ public class ClockService extends Service {
         return null;
     }
 
-    public static Runnable addTask(){
+    public Runnable addTask1(){
         tasks = new ArrayList<>();
-
         List<BigDay> bigDayList = db.getAllDataFromBigDay();
         List<Schedule> scheduleList = db.getAllDataFromSchedule();
-
         Calendar c = Calendar.getInstance();
-
-        if(bigDayList != null){
+        //Toast.makeText(getApplicationContext(), "进程号=" + Process.myPid() + ", 线程号="+ Process.myTid(),Toast.LENGTH_LONG).show();
+       /* if(bigDayList != null){
             for(int i=0;i<bigDayList.size();i++){
                 BigDay bigDay = bigDayList.get(i);
                 if(bigDay.remindTime.getTime() > 0){// 有开启提醒
@@ -137,12 +138,83 @@ public class ClockService extends Service {
         if(tasks != null && tasks.size()!=0){
             sort();
         }
-
+*/
         // 提示闹钟设置完毕
         //Toast.makeText(ClockService.this, hourOfDay+":"+minute, Toast.LENGTH_SHORT).show();
         //Toast.makeText(ClockService.this, "闹钟设置完毕 "+c.get(Calendar.YEAR)+"/"+(c.get(Calendar.MONTH)+1)+"/"+c.get(Calendar.DAY_OF_MONTH)+" "+c.get(Calendar.HOUR_OF_DAY)+":"+c.get(Calendar.MINUTE)+":"+c.get(Calendar.SECOND), Toast.LENGTH_SHORT).show();
 
         return null;
+    }
+
+    public void addTask(){
+        tasks = new ArrayList<>();
+        List<BigDay> bigDayList = db.getAllDataFromBigDay();
+        List<Schedule> scheduleList = db.getAllDataFromSchedule();
+        Calendar c = Calendar.getInstance();
+        //Toast.makeText(getApplicationContext(), "进程号=" + Process.myPid() + ", 线程号="+ Process.myTid(),Toast.LENGTH_LONG).show();
+       if(bigDayList != null){
+            for(int i=0;i<bigDayList.size();i++){
+                BigDay bigDay = bigDayList.get(i);
+                if(bigDay.remindTime.getTime() > 0){// 有开启提醒
+                    if(bigDay.repeatCycle != 0){// 不重复
+                        if(bigDay.remindTime.getTime() > c.getTimeInMillis()){
+                            RemindTask task = new RemindTask(bigDay);
+                            tasks.add(task);
+                        }
+                    }else{// 重复
+                        while(bigDay.remindTime.getTime() < c.getTimeInMillis()){
+                            if(bigDay.repeatCycle == 1){
+                                bigDay.remindTime.setDate(bigDay.remindTime.getDate()+bigDay.repeatInterval);
+                            }else if(bigDay.repeatCycle == 2){
+                                bigDay.remindTime.setDate(bigDay.remindTime.getDate()+7*bigDay.repeatInterval);
+                            }else if(bigDay.repeatCycle == 3){
+                                bigDay.remindTime.setMonth(bigDay.remindTime.getMonth()+bigDay.repeatInterval);
+                            }else if(bigDay.repeatCycle == 4){
+                                bigDay.remindTime.setYear(bigDay.remindTime.getYear()+bigDay.repeatInterval);
+                            }
+                        }
+                        RemindTask task = new RemindTask(bigDay);
+                        tasks.add(task);
+                    }
+                }
+            }
+        }
+
+        if(scheduleList != null){
+            for(int i=0;i<scheduleList.size();i++){
+                Schedule schedule = scheduleList.get(i);
+                if(schedule.remindTime.getTime() > 0){// 有开启提醒
+                    if(schedule.repeatCycle == 0){// 不重复
+                        if(schedule.remindTime.getTime() > c.getTimeInMillis()){
+                            RemindTask task = new RemindTask(schedule);
+                            tasks.add(task);
+                        }
+                    }else{// 重复
+                        while(schedule.remindTime.getTime() < c.getTimeInMillis()){
+                            if(schedule.repeatCycle == 1){
+                                schedule.remindTime.setDate(schedule.remindTime.getDate()+schedule.repeatInterval);
+                            }else if(schedule.repeatCycle == 2){
+                                schedule.remindTime.setDate(schedule.remindTime.getDate()+7*schedule.repeatInterval);
+                            }else if(schedule.repeatCycle == 3){
+                                schedule.remindTime.setMonth(schedule.remindTime.getMonth()+schedule.repeatInterval);
+                            }else if(schedule.repeatCycle == 4){
+                                schedule.remindTime.setYear(schedule.remindTime.getYear()+schedule.repeatInterval);
+                            }
+                        }
+                        RemindTask task = new RemindTask(schedule);
+                        tasks.add(task);
+                    }
+                }
+            }
+        }
+
+        if(tasks != null && tasks.size()!=0){
+            sort();
+        }
+        // 提示闹钟设置完毕
+        //Toast.makeText(ClockService.this, hourOfDay+":"+minute, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(ClockService.this, "闹钟设置完毕 "+c.get(Calendar.YEAR)+"/"+(c.get(Calendar.MONTH)+1)+"/"+c.get(Calendar.DAY_OF_MONTH)+" "+c.get(Calendar.HOUR_OF_DAY)+":"+c.get(Calendar.MINUTE)+":"+c.get(Calendar.SECOND), Toast.LENGTH_SHORT).show();
+
     }
 
     public static void sort(){

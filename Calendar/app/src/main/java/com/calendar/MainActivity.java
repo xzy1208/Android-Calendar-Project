@@ -4,10 +4,9 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TabActivity;
-import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -16,8 +15,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Message;
+import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -60,7 +59,7 @@ import com.calendar.bean.SimpleDate;
 import com.calendar.db.DBAdapter;
 import com.calendar.observer.SmsObserver;
 import com.calendar.service.ClockService;
-import com.calendar.service.NotificationService;
+import com.calendar.utils.PrefUtils;
 import com.calendar.view.CalendarView;
 import com.calendar.view.Day;
 import com.calendar.view.DayManager;
@@ -134,8 +133,6 @@ public class MainActivity extends TabActivity {
 
     public List<BigDay> bigDays;//用于点击不同日期，改变显示的倒数/正数数字
 
-    private NotificationService notificationService;
-
     private boolean isAllowAlert = false;
     private boolean isAllowNotify = false;
     final int[] course_bj = {R.drawable.coursetable1, R.drawable.coursetable2,
@@ -185,31 +182,109 @@ public class MainActivity extends TabActivity {
         createDayScheduleView();
         tabPaging();
         sending();
-        final Intent serviceIntent = new Intent(this,NotificationService.class);
-        boolean isBind=this.getApplicationContext().bindService(serviceIntent,mConnection,Context.BIND_AUTO_CREATE);
-        if(notificationService!=null){
-            Log.d("!not","t");
-            notificationService.sendSimpleNotify("通知","日程提醒");
-        }else{
-            Log.d("!not","f");
-        }
+        askAlertPermission();
     }
-    public ServiceConnection mConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.d("!not","connect");
-            notificationService = ((NotificationService.LocalBinder)service).getService();
-        }
-        @Override public void onServiceDisconnected(ComponentName name) {
-            notificationService = null;
-        }
-    };
+
 
     @Override
     protected void onStart() {
         super.onStart();
-        //setClock();
-        updateTitleAndView();
+        setClock();
+        //updateTitleAndView();
+    }
+
+    public void askAlertPermission(){
+        //弹窗权限验证
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            isAllowAlert = PrefUtils.getBoolean(this,"isAllowAlert",false);
+            if(!isAllowAlert){
+                showPermissionDialog();
+            }
+        }else {//已有权限
+            //SendAlarmBroadcast.startAlarmService(this);
+        }
+    }
+    public void askNotifyPermission(){
+        //通知权限验证
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            isAllowNotify = PrefUtils.getBoolean(this,"isAllowNotify",false);
+            if(!isAllowNotify){
+                showNotifyPermissionDialog();
+            }
+        }else {//已有权限
+            //SendAlarmBroadcast.startAlarmService(this);
+        }
+    }
+    //权限申请相关方法
+    //@TargetApi(Build.VERSION_CODES.M)
+    private void requestAlertWindowPermission() {
+        Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+        intent.setData(Uri.parse("package:" + getPackageName()));
+        startActivityForResult(intent, 1);
+    }
+
+    /**
+     * 弹窗权限申请
+     */
+    private void showPermissionDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("提醒功能需要开启悬浮窗权限哦(1/2)")
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {//添加确定按钮
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {//确定按钮的响应事件
+                        requestAlertWindowPermission();
+                    }
+                }).setNegativeButton("取消",new DialogInterface.OnClickListener(){
+
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+
+            }
+        });
+        builder.create().show();
+    }
+
+    /**
+     * 通知权限申请
+     */
+    private void showNotifyPermissionDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("开启横幅通知可以获得更好的体验哦(2/2)")
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {//添加确定按钮
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {//确定按钮的响应事件
+                        requestNotifyWindowPermission();
+                    }
+                }).setNegativeButton("取消",new DialogInterface.OnClickListener(){
+
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+
+            }
+        });
+        builder.create().show();
+    }
+
+
+    //TargetApi(Build.VERSION_CODES.M)
+    private void requestNotifyWindowPermission() {
+        Intent intent = new Intent();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            //android 8.0引导，引导到CHANNEL_ID对应的渠道设置下
+            intent.setAction(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS);
+            intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+            intent.putExtra(Settings.EXTRA_CHANNEL_ID, this.getApplicationInfo().uid);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            //android 5.0-7.0,引导到所有渠道设置下（单个渠道没有具体的设置）
+            intent.setAction(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+            intent.putExtra("app_package", getPackageName());
+            intent.putExtra("app_uid", getApplicationInfo().uid);
+        } else {
+            //其他
+            intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.fromParts("package", getPackageName(), null));
+        }
+        startActivityForResult(intent, 2);
     }
 
     private void initView(){
@@ -788,6 +863,7 @@ public class MainActivity extends TabActivity {
 
     public void setClock(){
         Intent intent = new Intent(MainActivity.this, ClockService.class);
+        //startForegroundService(intent);
         startService(intent);
     }
 
@@ -1872,6 +1948,26 @@ public class MainActivity extends TabActivity {
                                     Manifest.permission.SYSTEM_ALERT_WINDOW,
                                     Manifest.permission.ACCESS_NOTIFICATION_POLICY}, 10001);
                 }
+            }
+        }
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            if (Settings.canDrawOverlays(this)) {
+                Toast.makeText(this,"悬浮窗权限开启！",Toast.LENGTH_SHORT).show();
+                PrefUtils.setBoolean(MainActivity.this, "isAllowAlert", true);
+            }else {
+                PrefUtils.setBoolean(MainActivity.this, "isAllowAlert", false);
+            }
+            askNotifyPermission();
+        }else if (requestCode == 2) {
+            if (Settings.canDrawOverlays(this)) {
+                Toast.makeText(this,"通知权限开启！",Toast.LENGTH_SHORT).show();
+                PrefUtils.setBoolean(MainActivity.this, "isAllowNotify", true);
+            }else {
+                PrefUtils.setBoolean(MainActivity.this, "isAllowNotify", false);
             }
         }
     }
