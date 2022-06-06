@@ -42,28 +42,28 @@
             android:name="com.amap.api.v2.apikey"
             android:value="14b843c1cd812fcf701a2ec2f0fcfb77" />
 
-        <activity android:name="androiddeveloper_sx.calendar.MainActivity">
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="androiddeveloper_sx.calendar.BigDayActivity" />
-        <activity android:name="androiddeveloper_sx.calendar.ScheduleActivity" />
-        <activity android:name="androiddeveloper_sx.calendar.AddBigDayActivity" />
-        <activity android:name="androiddeveloper_sx.calendar.AddActivity" />
-        <activity android:name="androiddeveloper_sx.calendar.AddScheduleActivity" />
-        <activity android:name="androiddeveloper_sx.calendar.LookScheduleActivity" />
-        <activity android:name="androiddeveloper_sx.calendar.LookBigDayActivity" />
-        <activity android:name="androiddeveloper_sx.calendar.EditBigDayActivity" />
-        <activity android:name="androiddeveloper_sx.calendar.EditScheduleActivity" />
+        <activity android:name=".AddActivity" />
+        <activity android:name=".AddBigDayActivity" />
+        <activity android:name=".AddScheduleActivity" />
+        <activity android:name=".BigDayActivity" />
+        <activity android:name=".EditBigDayActivity" />
+        <activity android:name=".LookBigDayActivity" />
+        <activity android:name=".EditScheduleActivity" />
+        <activity android:name=".LookScheduleActivity" />
+        <activity android:name=".ScheduleActivity" />
 
         <service
-            android:name="androiddeveloper_sx.calendar.service.ClockService"
+            android:name=".service.ClockService"
             android:enabled="true"
             android:exported="true" />
         <service
-            android:name="androiddeveloper_sx.calendar.service.TaskService"
+            android:name=".service.TaskService"
             android:enabled="true"
             android:exported="true" />
         <service android:name="com.amap.api.location.APSService" />

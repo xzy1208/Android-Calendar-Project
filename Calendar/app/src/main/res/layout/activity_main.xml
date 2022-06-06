@@ -90,22 +90,22 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:orientation="vertical">
-                                <androiddeveloper_sx.calendar.view.MyListView
+                                <edu.zjut.androiddeveloper_sx.calendar.view.MyListView
                                     android:id="@+id/main_month_bigDayListView"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:divider="#00000000"
                                     android:dividerHeight="10sp"
                                     android:padding="10dp">
-                                </androiddeveloper_sx.calendar.view.MyListView>
-                                <androiddeveloper_sx.calendar.view.MyListView
+                                </edu.zjut.androiddeveloper_sx.calendar.view.MyListView>
+                                <edu.zjut.androiddeveloper_sx.calendar.view.MyListView
                                     android:id="@+id/main_month_scheduleListView"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:divider="#00000000"
                                     android:dividerHeight="10sp"
                                     android:padding="10dp">
-                                </androiddeveloper_sx.calendar.view.MyListView>
+                                </edu.zjut.androiddeveloper_sx.calendar.view.MyListView>
                             </LinearLayout>
                         </ScrollView>
                     </LinearLayout>

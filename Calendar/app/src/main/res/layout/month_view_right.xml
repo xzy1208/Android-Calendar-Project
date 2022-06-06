@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:layout_marginLeft="10dp"
     android:layout_marginRight="10dp">
-    <androiddeveloper_sx.calendar.view.RightMonthView
+    <edu.zjut.androiddeveloper_sx.calendar.view.RightMonthView
         android:id="@+id/right_month_view"
         android:layout_width="match_parent"
         android:layout_height="300dp"
