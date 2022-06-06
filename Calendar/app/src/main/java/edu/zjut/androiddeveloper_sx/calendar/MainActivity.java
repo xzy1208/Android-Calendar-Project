@@ -1974,19 +1974,27 @@ public class MainActivity extends TabActivity {
                     ActivityCompat.requestPermissions(this,
                             new String[]{Manifest.permission.RECEIVE_SMS,
                                     Manifest.permission.READ_SMS,
+                                    Manifest.permission.SEND_SMS,
                                     Manifest.permission.WRITE_EXTERNAL_STORAGE,
                                     Manifest.permission.READ_EXTERNAL_STORAGE,
                                     Manifest.permission.SYSTEM_ALERT_WINDOW,
                                     Manifest.permission.ACCESS_NOTIFICATION_POLICY,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.READ_PHONE_STATE,
                             }, 10001);
                 } else {//没有则请求获取权限
                     ActivityCompat.requestPermissions(this,
                             new String[]{Manifest.permission.RECEIVE_SMS,
                                     Manifest.permission.READ_SMS,
+                                    Manifest.permission.SEND_SMS,
                                     Manifest.permission.READ_EXTERNAL_STORAGE,
                                     Manifest.permission.WRITE_EXTERNAL_STORAGE,
                                     Manifest.permission.SYSTEM_ALERT_WINDOW,
-                                    Manifest.permission.ACCESS_NOTIFICATION_POLICY}, 10001);
+                                    Manifest.permission.ACCESS_NOTIFICATION_POLICY,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.READ_PHONE_STATE,}, 10001);
                 }
             }
         }

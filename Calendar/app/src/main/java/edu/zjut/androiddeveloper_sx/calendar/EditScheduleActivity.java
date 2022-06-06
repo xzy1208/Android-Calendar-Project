@@ -180,9 +180,11 @@ public class EditScheduleActivity extends Activity implements LocationSource, AM
     protected void onResume(){
         super.onResume();
         mapView.onResume();
+        /*
         if (isNeedCheck) {
             checkPermissions(needPermissions);
         }
+        */
     }
 
     @Override

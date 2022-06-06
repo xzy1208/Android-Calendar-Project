@@ -184,9 +184,11 @@ public class AddScheduleActivity extends Activity implements LocationSource, AMa
     protected void onResume(){
         super.onResume();
         mapView.onResume();
+        /*
         if (isNeedCheck) {
             checkPermissions(needPermissions);
         }
+        */
     }
 
     @Override
