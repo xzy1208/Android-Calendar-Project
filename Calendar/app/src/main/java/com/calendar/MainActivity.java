@@ -977,8 +977,7 @@ public class MainActivity extends TabActivity {
         int month=DayManager.getSelectMonth()+1;
         titleSelectText.setText(year+"年"+month+"月");
         updateCalendar();
-        updateMonthSchedule();
-        updateMonthBigDay();
+
     }
 
     public void createMonthScheduleView(){
@@ -1139,21 +1138,27 @@ public class MainActivity extends TabActivity {
                     for (int i = 0; i < timeList.size(); i++) {
                         if (startTime >= timeList.get(i)[0] && endTime <= timeList.get(i)[1]) {//包含关系
                             alterList.get(i).add(simpleDate);
-                        } else if (startTime >= timeList.get(i)[0] && endTime > timeList.get(i)[1]) {//前面包含，后面大于
+                        } else if (startTime >= timeList.get(i)[0]&&startTime<timeList.get(i)[1]&& endTime > timeList.get(i)[1]) {//前面包含，后面大于
                             alterList.get(i).add(simpleDate);
                             timeList.get(i)[1] = endTime;
-                        } else if (startTime < timeList.get(i)[0] && endTime <= timeList.get(i)[1]) {//前面大于，后面包含
+                            break;
+                        } else if (startTime < timeList.get(i)[0] &&endTime>timeList.get(i)[1]&& endTime <= timeList.get(i)[1]) {//前面大于，后面包含
                             alterList.get(i).add(simpleDate);
                             timeList.get(i)[0] = startTime;
+                            break;
                         } else if (startTime < timeList.get(i)[0] && endTime > timeList.get(i)[1]) {//全大于
                             alterList.get(i).add(simpleDate);
                             timeList.get(i)[0] = startTime;
                             timeList.get(i)[1] = endTime;
-                        } else {//时间无交集
+                            break;
+                        }
+                        if(i==timeList.size()-1){
+                            //时间无交集
                             timeList.add(new int[]{startTime, endTime});
                             List<SimpleDate> newOne = new ArrayList<SimpleDate>();
                             newOne.add(simpleDate);
                             alterList.add(newOne);
+                            break;
                         }
                     }
                 }
@@ -1491,7 +1496,7 @@ public class MainActivity extends TabActivity {
                         List<int[]> list = timeList.get(i);
                         isCover=false;
                         for (j = 0; j < list.size(); j++) {
-                            if (!(startTime >= list.get(j)[1] && endTime >= list.get(j)[1] || startTime <= list.get(j)[0] && endTime <= list.get(j)[0])) {//有包含关系
+                            if (!(startTime >= list.get(j)[1] && endTime > list.get(j)[1] || startTime < list.get(j)[0] && endTime <= list.get(j)[0])) {//有包含关系
                                 {
                                     //只要有一个包含就直接开始判断下一列
                                     isCover=true;
@@ -1501,20 +1506,20 @@ public class MainActivity extends TabActivity {
                         }
                         if (j == list.size()&&isCover==false)//无包含关系，加入该列
                         {
-                            alterList.add(new dayScheduleOnView(count+i+1, simpleDate, startTime, endTime));
+                            alterList.add(new dayScheduleOnView(i, simpleDate, startTime, endTime));
                             timeList.get(i).add(new int[]{startTime, endTime});
                             break;
                         }
                     }
                     if (i == timeList.size()) {//有包含关系，开新列，若为第五列（4），即合并
-                        if (timeList.size() != maxnum) {
+                        if (timeList.size() != 5) {
                             List<int[]> list = new ArrayList<int[]>();
                             list.add(new int[]{startTime, endTime});
                             timeList.add(list);
                             alterList.add(new dayScheduleOnView(i, simpleDate, startTime, endTime));
                         } else {
-                            timeList.get(maxnum-1).add(new int[]{startTime, endTime});
-                            alterList.add(new dayScheduleOnView(maxnum-1, simpleDate, startTime, endTime));
+                            timeList.get(4).add(new int[]{startTime, endTime});
+                            alterList.add(new dayScheduleOnView(4, simpleDate, startTime, endTime));
                         }
                     }
                 }
@@ -1870,6 +1875,8 @@ public class MainActivity extends TabActivity {
         createMonthScheduleView();
         createWeekScheduleView();
         createDayScheduleView();
+        updateMonthSchedule();
+        updateMonthBigDay();
     }
 
     @Override

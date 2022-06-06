@@ -204,6 +204,7 @@ public class AddScheduleActivity extends Activity implements LocationSource, AMa
         schedule_title = (TextView)findViewById(R.id.schedule_title);
         schedule_place = (Button)findViewById(R.id.schedule_place);
         schedule_place_RL = (RelativeLayout)findViewById(R.id.schedule_place_RL);
+        schedule_place_RL.setVisibility(View.GONE);
         schedule_allday = (Switch)findViewById(R.id.schedule_allday);
         schedule_start_time = (Button)findViewById(R.id.schedule_start_time);
         schedule_end_time = (Button)findViewById(R.id.schedule_end_time);
