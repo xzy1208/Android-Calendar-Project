@@ -1138,6 +1138,7 @@ public class MainActivity extends TabActivity {
                     for (int i = 0; i < timeList.size(); i++) {
                         if (startTime >= timeList.get(i)[0] && endTime <= timeList.get(i)[1]) {//包含关系
                             alterList.get(i).add(simpleDate);
+                            break;
                         } else if (startTime >= timeList.get(i)[0]&&startTime<timeList.get(i)[1]&& endTime > timeList.get(i)[1]) {//前面包含，后面大于
                             alterList.get(i).add(simpleDate);
                             timeList.get(i)[1] = endTime;
