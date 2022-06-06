@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:layout_marginLeft="10dp"
     android:layout_marginRight="10dp">
-    <com.calendar.view.LeftWeekView
+    <androiddeveloper_sx.calendar.view.LeftWeekView
         android:id="@+id/left_day_view"
         android:layout_width="match_parent"
         android:layout_height="100dp"
