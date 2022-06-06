@@ -1979,8 +1979,6 @@ public class MainActivity extends TabActivity {
                                     Manifest.permission.READ_EXTERNAL_STORAGE,
                                     Manifest.permission.SYSTEM_ALERT_WINDOW,
                                     Manifest.permission.ACCESS_NOTIFICATION_POLICY,
-                                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                                    Manifest.permission.ACCESS_FINE_LOCATION,
                             }, 10001);
                 } else {//没有则请求获取权限
                     ActivityCompat.requestPermissions(this,
@@ -1989,9 +1987,7 @@ public class MainActivity extends TabActivity {
                                     Manifest.permission.READ_EXTERNAL_STORAGE,
                                     Manifest.permission.WRITE_EXTERNAL_STORAGE,
                                     Manifest.permission.SYSTEM_ALERT_WINDOW,
-                                    Manifest.permission.ACCESS_NOTIFICATION_POLICY,
-                                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                                    Manifest.permission.ACCESS_FINE_LOCATION}, 10001);
+                                    Manifest.permission.ACCESS_NOTIFICATION_POLICY}, 10001);
                 }
             }
         }

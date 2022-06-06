@@ -1,11 +1,19 @@
 package androiddeveloper_sx.calendar;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -52,19 +60,19 @@ import com.amap.api.services.geocoder.RegeocodeResult;
 import com.amap.api.services.poisearch.PoiResult;
 import com.amap.api.services.poisearch.PoiSearch;
 
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-
+import androiddeveloper_sx.calendar.dialog.NumberPickerDialog;
+import edu.zjut.androiddeveloper_sx.calendar.R;
 import androiddeveloper_sx.calendar.adapter.PlaceAdapter;
 import androiddeveloper_sx.calendar.bean.FindSchedule;
 import androiddeveloper_sx.calendar.bean.Place;
 import androiddeveloper_sx.calendar.bean.Schedule;
 import androiddeveloper_sx.calendar.db.DBAdapter;
-import androiddeveloper_sx.calendar.dialog.NumberPickerDialog;
-import edu.zjut.androiddeveloper_sx.calendar.R;
+
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
 public class EditScheduleActivity extends Activity implements LocationSource, AMapLocationListener, GeocodeSearch.OnGeocodeSearchListener,AMap.OnMapClickListener{
 
@@ -113,13 +121,13 @@ public class EditScheduleActivity extends Activity implements LocationSource, AM
     //当前地图上的marker
     private Marker marker;
     // 权限
-    /*protected String[] needPermissions = {
+    protected String[] needPermissions = {
             Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.READ_PHONE_STATE
-    };*/
+    };
     private static final int PERMISSON_REQUESTCODE = 0;
     private boolean isNeedCheck = true;
     // 搜索框
@@ -173,9 +181,9 @@ public class EditScheduleActivity extends Activity implements LocationSource, AM
     protected void onResume(){
         super.onResume();
         mapView.onResume();
-        /*if (isNeedCheck) {
+        if (isNeedCheck) {
             checkPermissions(needPermissions);
-        }*/
+        }
     }
 
     @Override
@@ -747,7 +755,7 @@ public class EditScheduleActivity extends Activity implements LocationSource, AM
         markerOptions.position(new LatLng(latitude, longitude));
         marker = aMap.addMarker(markerOptions);
     }
-/*
+
     // 检查权限
     private void checkPermissions(String[] permissions) {
         //获取权限列表
@@ -783,9 +791,9 @@ public class EditScheduleActivity extends Activity implements LocationSource, AM
             }
         }
         return true;
-    }*/
+    }
 
-    /*@Override
+    @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String[] permissions, int[] paramArrayOfInt) {
         if (requestCode == PERMISSON_REQUESTCODE) {
@@ -794,9 +802,9 @@ public class EditScheduleActivity extends Activity implements LocationSource, AM
                 isNeedCheck = false;
             }
         }
-    }*/
+    }
 
-    /*// 显示提示信息
+    // 显示提示信息
     private void showMissingPermissionDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.notifyTitle);
@@ -829,7 +837,7 @@ public class EditScheduleActivity extends Activity implements LocationSource, AM
         Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
         intent.setData(Uri.parse("package:" + getPackageName()));
         startActivity(intent);
-    }*/
+    }
 
     // listView点击事件
     class MyOnItemClickListener implements AdapterView.OnItemClickListener {
