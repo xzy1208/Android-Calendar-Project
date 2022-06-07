@@ -26,7 +26,6 @@ public class ScheduleActivity extends Activity {
 
         db = DBAdapter.setDBAdapter(ScheduleActivity.this);
         db.open();
-
         initView();
     }
 

@@ -1061,8 +1061,8 @@ public class MainActivity extends TabActivity {
                 text.setBackgroundResource(course_bj[(int) (Math.random() * 10)]);
                 if (bigDays.get(i).size() > 1) {
                     String title=bigDay.title;
-                    if(title.length()>3)
-                        title=title.substring(0,2)+"..";
+                    if(title.length()>=3)
+                        title=title.substring(0,1)+"..";
                     text.setText("★" + title + " " + "+");
                     final List<BigDay> list = bigDays.get(i);
                     v.setOnClickListener(new View.OnClickListener() {
@@ -1127,38 +1127,43 @@ public class MainActivity extends TabActivity {
                 } else if (startTime == endTime) {
                     endTime = startTime + 5;
                 }
+
+                int i=0;
                 if (timeList.size() == 0) {
                     timeList.add(new int[]{startTime, endTime});
                     List<SimpleDate> first = new ArrayList<SimpleDate>();
                     first.add(simpleDate);
                     alterList.add(first);
                 } else {
-                    for (int i = 0; i < timeList.size(); i++) {
+                    boolean isCover=false;
+                    for (i = 0; i < timeList.size(); i++) {
+                        int t1=timeList.get(i)[0];
+                        int t2=timeList.get(i)[1];
                         if (startTime >= timeList.get(i)[0] && endTime <= timeList.get(i)[1]) {//包含关系
                             alterList.get(i).add(simpleDate);
-                            break;
+                            isCover=true;
                         } else if (startTime >= timeList.get(i)[0]&&startTime<timeList.get(i)[1]&& endTime > timeList.get(i)[1]) {//前面包含，后面大于
                             alterList.get(i).add(simpleDate);
                             timeList.get(i)[1] = endTime;
-                            break;
-                        } else if (startTime < timeList.get(i)[0] &&endTime>timeList.get(i)[1]&& endTime <= timeList.get(i)[1]) {//前面大于，后面包含
+                            isCover=true;
+                        } else if (startTime < timeList.get(i)[0] &&endTime>timeList.get(i)[0]&& endTime <= timeList.get(i)[1]) {//前面大于，后面包含
                             alterList.get(i).add(simpleDate);
                             timeList.get(i)[0] = startTime;
-                            break;
+                            isCover=true;
                         } else if (startTime < timeList.get(i)[0] && endTime > timeList.get(i)[1]) {//全大于
                             alterList.get(i).add(simpleDate);
                             timeList.get(i)[0] = startTime;
                             timeList.get(i)[1] = endTime;
-                            break;
+                            isCover=true;
                         }
-                        if(i==timeList.size()-1){
-                            //时间无交集
-                            timeList.add(new int[]{startTime, endTime});
-                            List<SimpleDate> newOne = new ArrayList<SimpleDate>();
-                            newOne.add(simpleDate);
-                            alterList.add(newOne);
-                            break;
-                        }
+
+                    }
+                    if(i==timeList.size()&&isCover==false){
+                        //时间无交集
+                        timeList.add(new int[]{startTime, endTime});
+                        List<SimpleDate> newOne = new ArrayList<SimpleDate>();
+                        newOne.add(simpleDate);
+                        alterList.add(newOne);
                     }
                 }
             }
@@ -1207,7 +1212,7 @@ public class MainActivity extends TabActivity {
             if (haveBigDay[dayOfWeek] == 1) {//已有一个重要日
                 if (allDayList.size() > 1) {
                     String title=simpleDate.title;
-                    if(title.length()>3)
+                    if(title.length()>=3)
                         title=title.substring(0,2)+"..";
                     text2.setText(title+ " " + "+");
                     v2.setOnClickListener(new View.OnClickListener() {
@@ -1218,7 +1223,7 @@ public class MainActivity extends TabActivity {
                     });
                 } else {
                     String title=simpleDate.title;
-                    if(title.length()>3)
+                    if(title.length()>=3)
                         title=title.substring(0,2)+"..";
                     text2.setText(title); //显示日程名
                     v2.setOnClickListener(new View.OnClickListener() {

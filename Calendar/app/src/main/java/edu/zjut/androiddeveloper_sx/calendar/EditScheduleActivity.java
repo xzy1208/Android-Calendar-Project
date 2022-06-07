@@ -206,6 +206,7 @@ public class EditScheduleActivity extends Activity implements LocationSource, AM
         edit_schedule_title = (TextView)findViewById(R.id.edit_schedule_title);
         edit_schedule_place = (Button)findViewById(R.id.edit_schedule_place);
         edit_schedule_place_RL = (RelativeLayout)findViewById(R.id.edit_schedule_place_RL);
+        edit_schedule_place_RL.setVisibility(View.GONE);
         edit_schedule_allday = (Switch)findViewById(R.id.edit_schedule_allday);
         edit_schedule_start_time = (Button)findViewById(R.id.edit_schedule_start_time);
         edit_schedule_end_time = (Button)findViewById(R.id.edit_schedule_end_time);

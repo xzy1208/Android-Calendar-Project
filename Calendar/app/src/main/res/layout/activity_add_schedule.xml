@@ -574,7 +574,7 @@
         android:orientation="vertical"
         android:layout_alignParentBottom="true"
         android:layout_marginTop="100dp"
-        >
+        android:visibility="gone">
 
         <com.amap.api.maps.MapView
             android:id="@+id/map_view"
@@ -614,6 +614,7 @@
                     android:background="@mipmap/yes"/>
             </LinearLayout>
             <ListView
+                android:visibility="gone"
                 android:id="@+id/place_listView"
                 android:layout_width="match_parent"
                 android:layout_height="170dp">
